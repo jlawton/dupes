@@ -42,10 +42,16 @@ func md5File(path: String) -> NSData? {
 
     CC_MD5_Init(ctx)
 
-    while true {
-        let data = file.readDataOfLength(8 * 1024)
-        if data.length == 0 { break }
-        CC_MD5_Update(ctx, data.bytes, CC_LONG(data.length))
+    var done = false
+    while !done {
+        autoreleasepool {
+            let data = file.readDataOfLength(8 * 1024)
+            if data.length == 0 {
+                done = true
+            } else {
+                CC_MD5_Update(ctx, data.bytes, CC_LONG(data.length))
+            }
+        }
     }
 
     file.closeFile()
