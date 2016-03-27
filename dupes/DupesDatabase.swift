@@ -41,20 +41,49 @@ class DupesDatabase {
         ]))
     }
 
-    func duplicates(fileRecord: FileRecord) throws -> AnySequence<[FileRecord]> {
+    func removeFileRecord(fileRecord: FileRecord) throws {
+        try removeFileRecord(fileRecord.path)
+    }
+
+    func removeFileRecord(filePath: String) throws {
+        try connection.run(file.filter(path == filePath).delete())
+    }
+
+    func duplicates() throws -> AnySequence<[FileRecord]> {
         let query = try connection.prepare(dupe
             .select([path, size, hash])
             .order([size.desc, hash]))
         return fileRecords(query).groupBy { "\($0.size):\($0.hash!)" }
     }
 
-    func filesToHash() -> AnySequence<FileRecord> {
-        return AnySequence { AnyGenerator { self.nextFileToHash() } }
+    func duplicates(fileRecord: FileRecord) throws -> [FileRecord] {
+        if fileRecord.hash == nil {
+            return []
+        }
+
+        let query = try connection.prepare(dupe
+            .select([path, size, hash])
+            .filter(size == fileRecord.size && hash == fileRecord.hash))
+        let dupes = fileRecords(query).groupBy { "\($0.size):\($0.hash!)" }
+        for files in dupes {
+            return files
+        }
+        return []
+    }
+
+    func filesToHash() throws -> AnySequence<FileRecord> {
+        let query = try connection.prepare(sharedSize
+            .select([path, size])
+            .order(size.desc)
+        ).lazy.map({ row in
+            FileRecord(path: row[path], size: row[size], hash: nil)
+        })
+        return AnySequence { query.generate() }
     }
 
     func nextFileToHash() -> FileRecord? {
         let query = sharedSize
-            .select([path, size, hash])
+            .select([path, size])
             .limit(1)
         guard let row = connection.pluck(query) else { return nil }
         return FileRecord(path: row[path], size: row[size], hash: nil)

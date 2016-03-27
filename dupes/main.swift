@@ -54,16 +54,27 @@ func main() {
     }
 
     do {
-        while let file = db.nextFileToHash() {
-            printErr("Hashing \(file.path)")
-            if let hashed = file.withHash() {
-                try db.addFileRecord(hashed)
-            } else {
-                printErr("Unable to hash file: \(file.path)")
-            }
-        }
+        try db.hashAllCandidates()
     } catch let e {
         printErr("Failed to store hash: \(e)")
+    }
+
+    do {
+        try db.duplicateStats()
+    } catch let e {
+        printErr("Failed to get stats: \(e)")
+    }
+
+    do {
+        for files in try db.duplicates() {
+            print("[Files of size \(human(files[0].size))]")
+            for f in files {
+                print("\(f.path)")
+            }
+            print("")
+        }
+    } catch let e {
+        printErr("Failed to get duplicates: \(e)")
     }
 }
 
