@@ -24,7 +24,7 @@ extension DupesDatabase {
     func duplicateStats() throws {
         // numerofduplicatesingroup: (wastedspace, numberofgroups)
         var duplicateSizes: [Int: (Int, Int)] = [:]
-        for dupes in try duplicates() {
+        for dupes in try groupedDuplicates() {
             let acc = duplicateSizes[dupes.count] ?? (0, 0)
             duplicateSizes[dupes.count] = (acc.0 + dupes[0].size * (dupes.count - 1), acc.1 + 1)
         }
@@ -37,6 +37,21 @@ extension DupesDatabase {
         }
 
         printErr("Total Wasted Space: \(human(totalWastedSpace))")
+    }
+
+    func reIndex(duplicatesOnly: Bool = false) throws {
+        let sequence = try (duplicatesOnly ? duplicates() : allFiles())
+        for indexedFile in sequence {
+            if let file = FileRecord.fromFileAtPath(indexedFile.path) {
+                if file.size != indexedFile.size {
+                    printErr("File size changed: \(file.path)")
+                    try addFileRecord(file, force: true)
+                }
+            } else {
+                printErr("File not found: \(indexedFile.path)")
+                try removeFileRecord(indexedFile)
+            }
+        }
     }
 
 }

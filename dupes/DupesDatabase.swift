@@ -24,9 +24,9 @@ class DupesDatabase {
         try createDatabase()
     }
 
-    func addFileRecord(fileRecord: FileRecord) throws {
+    func addFileRecord(fileRecord: FileRecord, force: Bool = false) throws {
         // Don't update if we'd just be deleting a hash
-        if fileRecord.hash == nil {
+        if !force && (fileRecord.hash == nil) {
             if let existing = selectFile(fileRecord.path) {
                 if existing.size == fileRecord.size {
                     return
@@ -49,11 +49,21 @@ class DupesDatabase {
         try connection.run(file.filter(path == filePath).delete())
     }
 
-    func duplicates() throws -> AnySequence<[FileRecord]> {
+    func allFiles() throws -> AnySequence<FileRecord> {
+        let query = try connection.prepare(file
+            .select([path, size, hash]))
+        return fileRecords(query)
+    }
+
+    func duplicates() throws -> AnySequence<FileRecord> {
         let query = try connection.prepare(dupe
             .select([path, size, hash])
             .order([size.desc, hash]))
-        return fileRecords(query).groupBy { "\($0.size):\($0.hash!)" }
+        return fileRecords(query)
+    }
+
+    func groupedDuplicates() throws -> AnySequence<[FileRecord]> {
+        return try duplicates().groupBy({ "\($0.size):\($0.hash!)" })
     }
 
     func duplicates(fileRecord: FileRecord) throws -> [FileRecord] {

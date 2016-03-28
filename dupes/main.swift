@@ -25,10 +25,7 @@ func addFile(path: Path, db: DupesDatabase) throws {
         return
     }
 
-    let attr = try NSFileManager.defaultManager().attributesOfItemAtPath("\(path)")
-    if let fileSize = attr[NSFileSize]  {
-        let size: Int = (fileSize as! NSNumber).integerValue
-        let fileRecord = FileRecord(path: "\(path)", size: size, hash: nil)
+    if let fileRecord = FileRecord.fromFileAtPath("\(path)") {
         printErr("Adding: \(path)")
         try db.addFileRecord(fileRecord)
     } else {
@@ -36,7 +33,21 @@ func addFile(path: Path, db: DupesDatabase) throws {
     }
 }
 
+func removeFilesFromStandardInput(db: DupesDatabase) throws {
+    while let rawPath = readLine(stripNewline: true) {
+        let path = Path(rawPath).absolute()
+        try db.removeFileRecord("\(path)")
+    }
+}
+
 func main() {
+
+    let args = Process.arguments
+    if args.count != 2 {
+        usage()
+        return
+    }
+
     var _db: DupesDatabase?
     let dbPath = "\(Path("~/.dupes.db").normalize())"
     do {
@@ -44,38 +55,66 @@ func main() {
     } catch let e {
         printErr("Failed to open database: \(e); dbpath = \(dbPath)")
     }
-
     guard let db = _db else { return }
 
-    do {
-        try addFilesFromStandardInput(db)
-    } catch let e {
-        printErr("Failed to do something: \(e)")
-    }
-
-    do {
-        try db.hashAllCandidates()
-    } catch let e {
-        printErr("Failed to store hash: \(e)")
-    }
-
-    do {
-        try db.duplicateStats()
-    } catch let e {
-        printErr("Failed to get stats: \(e)")
-    }
-
-    do {
-        for files in try db.duplicates() {
-            print("[Files of size \(human(files[0].size))]")
-            for f in files {
-                print("\(f.path)")
-            }
-            print("")
+    switch args[1] {
+    case "add":
+        do {
+            try addFilesFromStandardInput(db)
+        } catch let e {
+            printErr("Failed to add file: \(e)")
         }
-    } catch let e {
-        printErr("Failed to get duplicates: \(e)")
+    case "hash":
+        do {
+            try db.hashAllCandidates()
+        } catch let e {
+            printErr("Failed to store hash: \(e)")
+        }
+    case "remove":
+        do {
+            try removeFilesFromStandardInput(db)
+        } catch let e {
+            printErr("Failed to add file: \(e)")
+        }
+    case "reindex":
+        do {
+            try db.reIndex()
+        } catch let e {
+            printErr("Failed to reindex: \(e)")
+        }
+    case "list":
+        do {
+            for files in try db.groupedDuplicates() {
+                print("[Files of size \(human(files[0].size))]")
+                for f in files {
+                    print("\(f.path)")
+                }
+                print("")
+            }
+        } catch let e {
+            printErr("Failed to get duplicates: \(e)")
+        }
+    case "stats":
+        do {
+            try db.duplicateStats()
+        } catch let e {
+            printErr("Failed to get stats: \(e)")
+        }
+    default:
+        usage()
     }
+
+}
+
+func usage() {
+    print("Usage: dupes <command>")
+    print("Commands:")
+    print("  add       Index files passed in, on per line, on standard input.")
+    print("  hash      Hash all indexed files that might be duplicates.")
+    print("  remove    Unindex files passed in, on per line, on standard input.")
+    print("  reindex   Unindex all deleted duplicates, and unhash changed duplicates.")
+    print("  list      List all duplicates.")
+    print("  stats     Show summary of duplicates.")
 }
 
 main()

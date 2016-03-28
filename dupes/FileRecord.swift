@@ -31,6 +31,20 @@ extension FileRecord {
     }
 }
 
+extension FileRecord {
+    static func fromFileAtPath(path: String) -> FileRecord? {
+        do {
+            let attr = try NSFileManager.defaultManager().attributesOfItemAtPath(path)
+            guard let fileSize = attr[NSFileSize] else { return nil }
+
+            let size: Int = (fileSize as! NSNumber).integerValue
+            return FileRecord(path: path, size: size, hash: nil)
+        } catch {
+            return nil
+        }
+    }
+}
+
 func md5File(path: String) -> NSData? {
     guard let file = NSFileHandle(forReadingAtPath: path) else { return nil }
 

@@ -19,7 +19,7 @@ func human(fileSize: Int) -> String {
     for (size, unit) in sizeClasses {
         if fileSize >= size {
             let sizeInUnit = Double(fileSize) / Double(size)
-            return "\(sizeInUnit)\(unit)"
+            return String(format: "%0.2f\(unit)", sizeInUnit)
         }
     }
     return "\(fileSize)B"
