@@ -58,7 +58,7 @@ func main() {
     guard let db = _db else { return }
 
     switch args[1] {
-    case "add":
+    case "add", "index":
         do {
             try addFilesFromStandardInput(db)
         } catch let e {
@@ -70,13 +70,19 @@ func main() {
         } catch let e {
             printErr("Failed to store hash: \(e)")
         }
-    case "remove":
+    case "remove", "unindex":
         do {
             try removeFilesFromStandardInput(db)
         } catch let e {
             printErr("Failed to add file: \(e)")
         }
     case "reindex":
+        do {
+            try db.reIndex(duplicatesOnly: true)
+        } catch let e {
+            printErr("Failed to reindex: \(e)")
+        }
+    case "reindexall":
         do {
             try db.reIndex()
         } catch let e {
@@ -109,12 +115,13 @@ func main() {
 func usage() {
     print("Usage: dupes <command>")
     print("Commands:")
-    print("  add       Index files passed in, on per line, on standard input.")
-    print("  hash      Hash all indexed files that might be duplicates.")
-    print("  remove    Unindex files passed in, on per line, on standard input.")
-    print("  reindex   Unindex all deleted duplicates, and unhash changed duplicates.")
-    print("  list      List all duplicates.")
-    print("  stats     Show summary of duplicates.")
+    print("  add         Index files passed in, on per line, on standard input.")
+    print("  hash        Hash all indexed files that might be duplicates.")
+    print("  remove      Unindex files passed in, on per line, on standard input.")
+    print("  reindex     Unindex all deleted duplicates, and unhash changed duplicates.")
+    print("  reindexall  Unindex all deleted duplicates, and unhash changed duplicates.")
+    print("  list        List all duplicates.")
+    print("  stats       Show summary of duplicates.")
 }
 
 main()

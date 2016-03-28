@@ -39,7 +39,7 @@ extension DupesDatabase {
         printErr("Total Wasted Space: \(human(totalWastedSpace))")
     }
 
-    func reIndex(duplicatesOnly: Bool = false) throws {
+    func reIndex(duplicatesOnly duplicatesOnly: Bool = false) throws {
         let sequence = try (duplicatesOnly ? duplicates() : allFiles())
         for indexedFile in sequence {
             if let file = FileRecord.fromFileAtPath(indexedFile.path) {
