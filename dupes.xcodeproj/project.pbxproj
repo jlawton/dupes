@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */; };
 		1A452D991CA8A636009E3F08 /* FileSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D981CA8A636009E3F08 /* FileSize.swift */; };
+		1A4EA56A1CAA528A006DC98D /* Readline+Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */; };
 		1A692E1A1CA4C18B00D2D19F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A692E191CA4C18B00D2D19F /* main.swift */; };
 		1A692E211CA4C19B00D2D19F /* FileRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A692E201CA4C19B00D2D19F /* FileRecord.swift */; };
 		1A692E241CA4DF9600D2D19F /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A692E231CA4DF9600D2D19F /* libsqlite3.tbd */; };
@@ -58,6 +59,7 @@
 		1A4EA5651CAA4F49006DC98D /* Switch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Switch.swift; sourceTree = "<group>"; };
 		1A4EA5671CAA4FC4006DC98D /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
 		1A4EA5681CAA4FC4006DC98D /* ResultType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultType.swift; sourceTree = "<group>"; };
+		1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Readline+Sequence.swift"; sourceTree = "<group>"; };
 		1A692E161CA4C18B00D2D19F /* dupes */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = dupes; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A692E191CA4C18B00D2D19F /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		1A692E201CA4C19B00D2D19F /* FileRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileRecord.swift; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 				1A6DEA501CA52C61007F9FC2 /* NSData+Hex.swift */,
 				1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */,
 				1A452D981CA8A636009E3F08 /* FileSize.swift */,
+				1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */,
 			);
 			path = dupes;
 			sourceTree = "<group>";
@@ -271,6 +274,7 @@
 				1A692E5B1CA4E67900D2D19F /* Setter.swift in Sources */,
 				1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */,
 				1A452D991CA8A636009E3F08 /* FileSize.swift in Sources */,
+				1A4EA56A1CAA528A006DC98D /* Readline+Sequence.swift in Sources */,
 				1A6DEA4C1CA50DF3007F9FC2 /* Sequence+GroupBy.swift in Sources */,
 				1A692E4B1CA4E67900D2D19F /* Connection.swift in Sources */,
 				1A692E591CA4E67900D2D19F /* Query.swift in Sources */,
