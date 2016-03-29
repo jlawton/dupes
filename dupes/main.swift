@@ -49,7 +49,7 @@ func main() {
     }
 
     var _db: DupesDatabase?
-    let dbPath = "\(Path("~/.dupes.db").normalize())"
+    let dbPath = "\(Path("~/.dupes.db").absolute())"
     do {
         _db = try DupesDatabase(location: .URI(dbPath))
     } catch let e {
