@@ -84,7 +84,7 @@ public final class Connection {
     ///
     ///     Default: `false`.
     ///
-    /// - Throws: `Result.Error` iff a connection cannot be established.
+    /// - Throws: `DBResult.Error` iff a connection cannot be established.
     ///
     /// - Returns: A new database connection.
     public convenience init(_ filename: String, readonly: Bool = false) throws {
@@ -125,7 +125,7 @@ public final class Connection {
     /// - Parameter SQL: A batch of zero or more semicolon-separated SQL
     ///   statements.
     ///
-    /// - Throws: `Result.Error` if query execution fails.
+    /// - Throws: `DBResult.Error` if query execution fails.
     public func execute(SQL: String) throws {
         try sync { try self.check(sqlite3_exec(self.handle, SQL, nil, nil, nil)) }
     }
@@ -182,7 +182,7 @@ public final class Connection {
     ///
     ///   - bindings: A list of parameters to bind to the statement.
     ///
-    /// - Throws: `Result.Error` if query execution fails.
+    /// - Throws: `DBResult.Error` if query execution fails.
     ///
     /// - Returns: The statement.
     public func run(statement: String, _ bindings: Binding?...) throws -> Statement {
@@ -197,7 +197,7 @@ public final class Connection {
     ///
     ///   - bindings: A list of parameters to bind to the statement.
     ///
-    /// - Throws: `Result.Error` if query execution fails.
+    /// - Throws: `DBResult.Error` if query execution fails.
     ///
     /// - Returns: The statement.
     public func run(statement: String, _ bindings: [Binding?]) throws -> Statement {
@@ -212,7 +212,7 @@ public final class Connection {
     ///
     ///   - bindings: A dictionary of named parameters to bind to the statement.
     ///
-    /// - Throws: `Result.Error` if query execution fails.
+    /// - Throws: `DBResult.Error` if query execution fails.
     ///
     /// - Returns: The statement.
     public func run(statement: String, _ bindings: [String: Binding?]) throws -> Statement {
@@ -295,7 +295,7 @@ public final class Connection {
     ///     The transaction will be committed when the block returns. The block
     ///     must throw to roll the transaction back.
     ///
-    /// - Throws: `Result.Error`, and rethrows.
+    /// - Throws: `DBResult.Error`, and rethrows.
     public func transaction(mode: TransactionMode = .Deferred, block: () throws -> Void) throws {
         try transaction("BEGIN \(mode.rawValue) TRANSACTION", block, "COMMIT TRANSACTION", or: "ROLLBACK TRANSACTION")
     }
@@ -315,7 +315,7 @@ public final class Connection {
     ///     The savepoint will be released (committed) when the block returns.
     ///     The block must throw to roll the savepoint back.
     ///
-    /// - Throws: `SQLite.Result.Error`, and rethrows.
+    /// - Throws: `DBResult.Error`, and rethrows.
     public func savepoint(name: String = NSUUID().UUIDString, block: () throws -> Void) throws {
         let name = name.quote("'")
         let savepoint = "SAVEPOINT \(name)"
@@ -591,7 +591,7 @@ public final class Connection {
     }
 
     func check(resultCode: Int32, statement: Statement? = nil) throws -> Int32 {
-        guard let error = Result(errorCode: resultCode, connection: self, statement: statement) else {
+        guard let error = DBResult(errorCode: resultCode, connection: self, statement: statement) else {
             return resultCode
         }
 
@@ -656,14 +656,14 @@ public enum Operation {
 
 }
 
-public enum Result : ErrorType {
+public enum DBResult : ErrorType {
 
     private static let successCodes: Set = [SQLITE_OK, SQLITE_ROW, SQLITE_DONE]
 
     case Error(message: String, code: Int32, statement: Statement?)
 
     init?(errorCode: Int32, connection: Connection, statement: Statement? = nil) {
-        guard !Result.successCodes.contains(errorCode) else { return nil }
+        guard !DBResult.successCodes.contains(errorCode) else { return nil }
 
         let message = String.fromCString(sqlite3_errmsg(connection.handle))!
         self = Error(message: message, code: errorCode, statement: statement)
@@ -671,7 +671,7 @@ public enum Result : ErrorType {
 
 }
 
-extension Result : CustomStringConvertible {
+extension DBResult : CustomStringConvertible {
 
     public var description: String {
         switch self {
