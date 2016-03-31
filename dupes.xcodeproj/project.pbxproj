@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		1A2551501CACFBEA00889001 /* VersionCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A25514F1CACFBEA00889001 /* VersionCommand.swift */; };
 		1A2551531CAD01E900889001 /* HashCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551521CAD01E900889001 /* HashCommand.swift */; };
+		1A2551551CAD03EB00889001 /* RemoveCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551541CAD03EB00889001 /* RemoveCommand.swift */; };
+		1A2551571CAD049400889001 /* ReindexCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551561CAD049400889001 /* ReindexCommand.swift */; };
+		1A2551591CAD072C00889001 /* ListCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551581CAD072C00889001 /* ListCommand.swift */; };
+		1A25515B1CAD0D5C00889001 /* SummaryCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A25515A1CAD0D5C00889001 /* SummaryCommand.swift */; };
 		1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */; };
 		1A452D991CA8A636009E3F08 /* FileSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D981CA8A636009E3F08 /* FileSize.swift */; };
 		1A4EA56A1CAA528A006DC98D /* Readline+Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */; };
@@ -63,6 +67,10 @@
 /* Begin PBXFileReference section */
 		1A25514F1CACFBEA00889001 /* VersionCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VersionCommand.swift; sourceTree = "<group>"; };
 		1A2551521CAD01E900889001 /* HashCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HashCommand.swift; sourceTree = "<group>"; };
+		1A2551541CAD03EB00889001 /* RemoveCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoveCommand.swift; sourceTree = "<group>"; };
+		1A2551561CAD049400889001 /* ReindexCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReindexCommand.swift; sourceTree = "<group>"; };
+		1A2551581CAD072C00889001 /* ListCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListCommand.swift; sourceTree = "<group>"; };
+		1A25515A1CAD0D5C00889001 /* SummaryCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SummaryCommand.swift; sourceTree = "<group>"; };
 		1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DupesDatabase+Operations.swift"; sourceTree = "<group>"; };
 		1A452D981CA8A636009E3F08 /* FileSize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileSize.swift; sourceTree = "<group>"; };
 		1A4EA55E1CAA4F49006DC98D /* Argument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argument.swift; sourceTree = "<group>"; };
@@ -146,6 +154,10 @@
 			children = (
 				1A4EA56D1CAA738F006DC98D /* AddCommand.swift */,
 				1A2551521CAD01E900889001 /* HashCommand.swift */,
+				1A2551581CAD072C00889001 /* ListCommand.swift */,
+				1A2551561CAD049400889001 /* ReindexCommand.swift */,
+				1A2551541CAD03EB00889001 /* RemoveCommand.swift */,
+				1A25515A1CAD0D5C00889001 /* SummaryCommand.swift */,
 				1A25514F1CACFBEA00889001 /* VersionCommand.swift */,
 			);
 			name = Commands;
@@ -333,11 +345,15 @@
 				1A4EA5721CAA747F006DC98D /* Command.swift in Sources */,
 				1A692E211CA4C19B00D2D19F /* FileRecord.swift in Sources */,
 				1A692E1A1CA4C18B00D2D19F /* main.swift in Sources */,
+				1A25515B1CAD0D5C00889001 /* SummaryCommand.swift in Sources */,
 				1A692E521CA4E67900D2D19F /* Helpers.swift in Sources */,
 				1A6DEA511CA52C61007F9FC2 /* NSData+Hex.swift in Sources */,
+				1A2551551CAD03EB00889001 /* RemoveCommand.swift in Sources */,
 				1A4EA56E1CAA738F006DC98D /* AddCommand.swift in Sources */,
 				1A692E541CA4E67900D2D19F /* Collation.swift in Sources */,
+				1A2551591CAD072C00889001 /* ListCommand.swift in Sources */,
 				1A6DEA4F1CA51583007F9FC2 /* PathKit.swift in Sources */,
+				1A2551571CAD049400889001 /* ReindexCommand.swift in Sources */,
 				1A692E511CA4E67900D2D19F /* Foundation.swift in Sources */,
 				1A692E581CA4E67900D2D19F /* Operators.swift in Sources */,
 			);

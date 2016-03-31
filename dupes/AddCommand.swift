@@ -38,3 +38,17 @@ struct AddCommandOptions: OptionsType {
             <*> m <| databaseOption
     }
 }
+
+func addFile(path: Path, db: DupesDatabase) throws {
+    guard path.isFile else {
+        printErr("Not a file: \(path)")
+        return
+    }
+
+    if let fileRecord = FileRecord.fromFileAtPath("\(path)") {
+        printErr("Adding: \(path)")
+        try db.addFileRecord(fileRecord)
+    } else {
+        printErr("Failed to get file size: \(path)")
+    }
+}
