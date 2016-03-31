@@ -13,6 +13,7 @@
 		1A2551571CAD049400889001 /* ReindexCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551561CAD049400889001 /* ReindexCommand.swift */; };
 		1A2551591CAD072C00889001 /* ListCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551581CAD072C00889001 /* ListCommand.swift */; };
 		1A25515B1CAD0D5C00889001 /* SummaryCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A25515A1CAD0D5C00889001 /* SummaryCommand.swift */; };
+		1A2551611CAD220700889001 /* generated_data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551601CAD220700889001 /* generated_data.swift */; };
 		1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */; };
 		1A452D991CA8A636009E3F08 /* FileSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D981CA8A636009E3F08 /* FileSize.swift */; };
 		1A4EA56A1CAA528A006DC98D /* Readline+Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */; };
@@ -71,6 +72,9 @@
 		1A2551561CAD049400889001 /* ReindexCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReindexCommand.swift; sourceTree = "<group>"; };
 		1A2551581CAD072C00889001 /* ListCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListCommand.swift; sourceTree = "<group>"; };
 		1A25515A1CAD0D5C00889001 /* SummaryCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SummaryCommand.swift; sourceTree = "<group>"; };
+		1A25515D1CAD0F5800889001 /* dupes.interactive.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = dupes.interactive.txt; sourceTree = "<group>"; };
+		1A25515E1CAD0F5800889001 /* dupes.vimrc */ = {isa = PBXFileReference; lastKnownFileType = text; path = dupes.vimrc; sourceTree = "<group>"; };
+		1A2551601CAD220700889001 /* generated_data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generated_data.swift; sourceTree = "<group>"; };
 		1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DupesDatabase+Operations.swift"; sourceTree = "<group>"; };
 		1A452D981CA8A636009E3F08 /* FileSize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileSize.swift; sourceTree = "<group>"; };
 		1A4EA55E1CAA4F49006DC98D /* Argument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argument.swift; sourceTree = "<group>"; };
@@ -125,6 +129,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A25515C1CAD0F5800889001 /* data */ = {
+			isa = PBXGroup;
+			children = (
+				1A25515D1CAD0F5800889001 /* dupes.interactive.txt */,
+				1A25515E1CAD0F5800889001 /* dupes.vimrc */,
+			);
+			path = data;
+			sourceTree = "<group>";
+		};
 		1A4EA55D1CAA4F49006DC98D /* Commandant */ = {
 			isa = PBXGroup;
 			children = (
@@ -179,6 +192,7 @@
 			children = (
 				1A692E231CA4DF9600D2D19F /* libsqlite3.tbd */,
 				1A692E181CA4C18B00D2D19F /* dupes */,
+				1A25515C1CAD0F5800889001 /* data */,
 				1A692E171CA4C18B00D2D19F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -206,6 +220,7 @@
 				1A452D981CA8A636009E3F08 /* FileSize.swift */,
 				1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */,
 				1A4EA5791CAAE8F2006DC98D /* DupesError.swift */,
+				1A2551601CAD220700889001 /* generated_data.swift */,
 			);
 			path = dupes;
 			sourceTree = "<group>";
@@ -264,6 +279,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1A692E1D1CA4C18B00D2D19F /* Build configuration list for PBXNativeTarget "dupes" */;
 			buildPhases = (
+				1A25515F1CAD187700889001 /* Generate strings from data files */,
 				1A692E121CA4C18B00D2D19F /* Sources */,
 				1A692E131CA4C18B00D2D19F /* Frameworks */,
 				1A692E141CA4C18B00D2D19F /* CopyFiles */,
@@ -309,6 +325,26 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		1A25515F1CAD187700889001 /* Generate strings from data files */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/data/dupes.interactive.txt",
+				"$(SRCROOT)/data/dupes.vimrc",
+			);
+			name = "Generate strings from data files";
+			outputPaths = (
+				"$(SRCROOT)/dupes/generated_data.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "script/generate_data_string.pl\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		1A692E121CA4C18B00D2D19F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -329,6 +365,7 @@
 				1A692E5A1CA4E67900D2D19F /* Schema.swift in Sources */,
 				1A692E561CA4E67900D2D19F /* CustomFunctions.swift in Sources */,
 				1A692E4E1CA4E67900D2D19F /* Value.swift in Sources */,
+				1A2551611CAD220700889001 /* generated_data.swift in Sources */,
 				1A692E5B1CA4E67900D2D19F /* Setter.swift in Sources */,
 				1A4EA5771CAA7488006DC98D /* Result.swift in Sources */,
 				1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */,

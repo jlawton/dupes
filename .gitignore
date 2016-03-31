@@ -1,4 +1,7 @@
 
+dupes/generated_data.swift
+
 .DS_Store
 xcuserdata/
 
+.*.swp
