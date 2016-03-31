@@ -28,6 +28,7 @@ set ffs=unix
 
 " Functions
 function DupesNext(...)
+  " Options include 'b' (backwards) and 'W' (don't wrap)
   call search('^[x ] \/',  a:0 > 0 ? a:1 : '')
 endfunction
 
@@ -41,10 +42,41 @@ function DupesNextGroup(...)
   call DupesNext()
 endfunction
 
+function DupesToggleMark(...)
+  " Toggle between x and <space> (suppressing errors)
+  silent! s/^\([x ]\) \//\=tr(submatch(1), 'x ', ' x')." \/"
+  if a:0 > 0
+    call DupesNext(a:1)
+  else
+    call DupesNext()
+  endif
+endfunction
+
+function DupesSetMark(...)
+  " Changes x to <space> (suppressing errors)
+  silent! s/^  \//x \/
+  if a:0 > 0
+    call DupesNext(a:1)
+  else
+    call DupesNext()
+  endif
+endfunction
+
+function DupesClearMark(...)
+  " Changes x to <space> (suppressing errors)
+  silent! s/^x \//  \/
+  if a:0 > 0
+    call DupesNext(a:1)
+  else
+    call DupesNext()
+  endif
+endfunction
+
 function DupesMaps()
   " Marking files
-  nnoremap <special> <silent> x 0rx/^[x ] \/<CR>:noh<CR>
-  nnoremap <special> <silent> <space> 0r /^[x ] \/<CR>:noh<CR>
+  nnoremap <special> <silent> x :call DupesSetMark('W')<CR>
+  nnoremap <special> <silent> X :call DupesToggleMark('W')<CR>
+  nnoremap <special> <silent> <space> :call DupesClearMark()<CR>
   nnoremap <special> <silent> Q :wq<CR>
 
   " Movement
