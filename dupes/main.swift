@@ -47,6 +47,7 @@ func main() {
     let commands = CommandRegistry<DupesError>()
     commands.register(VersionCommand())
     commands.register(AddCommand())
+    commands.register(HashCommand())
     commands.register(HelpCommand(registry: commands))
 
     commands.main(defaultVerb: "help") { error in

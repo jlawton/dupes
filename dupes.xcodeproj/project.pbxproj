@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1A2551501CACFBEA00889001 /* VersionCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A25514F1CACFBEA00889001 /* VersionCommand.swift */; };
+		1A2551531CAD01E900889001 /* HashCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551521CAD01E900889001 /* HashCommand.swift */; };
 		1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */; };
 		1A452D991CA8A636009E3F08 /* FileSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D981CA8A636009E3F08 /* FileSize.swift */; };
 		1A4EA56A1CAA528A006DC98D /* Readline+Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */; };
@@ -61,6 +62,7 @@
 
 /* Begin PBXFileReference section */
 		1A25514F1CACFBEA00889001 /* VersionCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VersionCommand.swift; sourceTree = "<group>"; };
+		1A2551521CAD01E900889001 /* HashCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HashCommand.swift; sourceTree = "<group>"; };
 		1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DupesDatabase+Operations.swift"; sourceTree = "<group>"; };
 		1A452D981CA8A636009E3F08 /* FileSize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileSize.swift; sourceTree = "<group>"; };
 		1A4EA55E1CAA4F49006DC98D /* Argument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argument.swift; sourceTree = "<group>"; };
@@ -143,6 +145,7 @@
 			isa = PBXGroup;
 			children = (
 				1A4EA56D1CAA738F006DC98D /* AddCommand.swift */,
+				1A2551521CAD01E900889001 /* HashCommand.swift */,
 				1A25514F1CACFBEA00889001 /* VersionCommand.swift */,
 			);
 			name = Commands;
@@ -326,6 +329,7 @@
 				1A692E591CA4E67900D2D19F /* Query.swift in Sources */,
 				1A692E5D1CA4E7B800D2D19F /* DupesDatabase.swift in Sources */,
 				1A692E551CA4E67900D2D19F /* CoreFunctions.swift in Sources */,
+				1A2551531CAD01E900889001 /* HashCommand.swift in Sources */,
 				1A4EA5721CAA747F006DC98D /* Command.swift in Sources */,
 				1A692E211CA4C19B00D2D19F /* FileRecord.swift in Sources */,
 				1A692E1A1CA4C18B00D2D19F /* main.swift in Sources */,

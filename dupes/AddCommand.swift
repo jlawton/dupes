@@ -8,6 +8,8 @@
 
 import Foundation
 
+let databaseOption = Option(key: "db", defaultValue: defaultDatabasePath, usage: "Use the specified database file")
+
 struct AddCommand: CommandType {
     typealias Options = AddCommandOptions
 
@@ -33,6 +35,6 @@ struct AddCommandOptions: OptionsType {
 
     static func evaluate(m: CommandMode) -> Result<AddCommandOptions, CommandantError<DupesError>> {
         return create
-            <*> m <| Option(key: "db", defaultValue: defaultDatabasePath, usage: "Use the specified database file")
+            <*> m <| databaseOption
     }
 }
