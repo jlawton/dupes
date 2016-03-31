@@ -44,6 +44,19 @@ func removeFilesFromStandardInput(db: DupesDatabase) throws {
 
 func main() {
 
+    let commands = CommandRegistry<DupesError>()
+    commands.register(VersionCommand())
+    commands.register(AddCommand())
+    commands.register(HelpCommand(registry: commands))
+
+    commands.main(defaultVerb: "help") { error in
+        print("\(error)")
+    }
+
+//    return
+
+
+/*
     let args = Process.arguments
     if args.count != 2 {
         usage()
@@ -111,7 +124,7 @@ func main() {
     default:
         usage()
     }
-
+*/
 }
 
 func usage() {

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A2551501CACFBEA00889001 /* VersionCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A25514F1CACFBEA00889001 /* VersionCommand.swift */; };
 		1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */; };
 		1A452D991CA8A636009E3F08 /* FileSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D981CA8A636009E3F08 /* FileSize.swift */; };
 		1A4EA56A1CAA528A006DC98D /* Readline+Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */; };
@@ -59,6 +60,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A25514F1CACFBEA00889001 /* VersionCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VersionCommand.swift; sourceTree = "<group>"; };
 		1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DupesDatabase+Operations.swift"; sourceTree = "<group>"; };
 		1A452D981CA8A636009E3F08 /* FileSize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileSize.swift; sourceTree = "<group>"; };
 		1A4EA55E1CAA4F49006DC98D /* Argument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argument.swift; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 			isa = PBXGroup;
 			children = (
 				1A4EA56D1CAA738F006DC98D /* AddCommand.swift */,
+				1A25514F1CACFBEA00889001 /* VersionCommand.swift */,
 			);
 			name = Commands;
 			sourceTree = "<group>";
@@ -305,6 +308,7 @@
 				1A692E531CA4E67900D2D19F /* AggregateFunctions.swift in Sources */,
 				1A692E4A1CA4E67900D2D19F /* Blob.swift in Sources */,
 				1A4EA5701CAA747F006DC98D /* ArgumentParser.swift in Sources */,
+				1A2551501CACFBEA00889001 /* VersionCommand.swift in Sources */,
 				1A4EA5741CAA747F006DC98D /* HelpCommand.swift in Sources */,
 				1A4EA5711CAA747F006DC98D /* ArgumentType.swift in Sources */,
 				1A692E5A1CA4E67900D2D19F /* Schema.swift in Sources */,

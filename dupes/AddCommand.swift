@@ -22,7 +22,6 @@ struct AddCommand: CommandType {
             }
         }
     }
-
 }
 
 struct AddCommandOptions: OptionsType {
@@ -34,6 +33,6 @@ struct AddCommandOptions: OptionsType {
 
     static func evaluate(m: CommandMode) -> Result<AddCommandOptions, CommandantError<DupesError>> {
         return create
-            <*> m <| Option(key: "db", defaultValue: defaultDatabasePath, usage: "")
+            <*> m <| Option(key: "db", defaultValue: defaultDatabasePath, usage: "Use the specified database file")
     }
 }
