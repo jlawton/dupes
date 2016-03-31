@@ -153,3 +153,18 @@ func fileRecords<S: SequenceType where S.Generator.Element == Row>(query: S) -> 
         }).generate()
     }
 }
+
+extension DupesDatabase {
+    static func open(path: String) -> Result<DupesDatabase, DupesError> {
+        var _db: DupesDatabase?
+        let dbPath = "\(Path(path).absolute())"
+        do {
+            _db = try DupesDatabase(location: .URI(dbPath))
+        } catch let e {
+            return Result(error: .Database("\(e)", db: dbPath))
+        }
+        guard let db = _db else { return Result(error: .Database("Failed to open database", db: dbPath)) }
+
+        return Result(value: db)
+    }
+}

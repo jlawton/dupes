@@ -8,6 +8,8 @@
 
 import Foundation
 
+let defaultDatabasePath = "~/.dupes.db"
+
 func printErr(string: String) {
     fputs("\(string)\n", __stderrp)
 }
@@ -49,7 +51,7 @@ func main() {
     }
 
     var _db: DupesDatabase?
-    let dbPath = "\(Path("~/.dupes.db").absolute())"
+    let dbPath = "\(Path(defaultDatabasePath).absolute())"
     do {
         _db = try DupesDatabase(location: .URI(dbPath))
     } catch let e {
