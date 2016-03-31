@@ -14,6 +14,7 @@
 		1A2551591CAD072C00889001 /* ListCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551581CAD072C00889001 /* ListCommand.swift */; };
 		1A25515B1CAD0D5C00889001 /* SummaryCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A25515A1CAD0D5C00889001 /* SummaryCommand.swift */; };
 		1A2551611CAD220700889001 /* generated_data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551601CAD220700889001 /* generated_data.swift */; };
+		1A2551631CAD240800889001 /* TemporaryFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551621CAD240800889001 /* TemporaryFile.swift */; };
 		1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */; };
 		1A452D991CA8A636009E3F08 /* FileSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D981CA8A636009E3F08 /* FileSize.swift */; };
 		1A4EA56A1CAA528A006DC98D /* Readline+Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */; };
@@ -75,6 +76,7 @@
 		1A25515D1CAD0F5800889001 /* dupes.interactive.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = dupes.interactive.txt; sourceTree = "<group>"; };
 		1A25515E1CAD0F5800889001 /* dupes.vimrc */ = {isa = PBXFileReference; lastKnownFileType = text; path = dupes.vimrc; sourceTree = "<group>"; };
 		1A2551601CAD220700889001 /* generated_data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generated_data.swift; sourceTree = "<group>"; };
+		1A2551621CAD240800889001 /* TemporaryFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TemporaryFile.swift; sourceTree = "<group>"; };
 		1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DupesDatabase+Operations.swift"; sourceTree = "<group>"; };
 		1A452D981CA8A636009E3F08 /* FileSize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileSize.swift; sourceTree = "<group>"; };
 		1A4EA55E1CAA4F49006DC98D /* Argument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argument.swift; sourceTree = "<group>"; };
@@ -221,6 +223,7 @@
 				1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */,
 				1A4EA5791CAAE8F2006DC98D /* DupesError.swift */,
 				1A2551601CAD220700889001 /* generated_data.swift */,
+				1A2551621CAD240800889001 /* TemporaryFile.swift */,
 			);
 			path = dupes;
 			sourceTree = "<group>";
@@ -391,6 +394,7 @@
 				1A2551591CAD072C00889001 /* ListCommand.swift in Sources */,
 				1A6DEA4F1CA51583007F9FC2 /* PathKit.swift in Sources */,
 				1A2551571CAD049400889001 /* ReindexCommand.swift in Sources */,
+				1A2551631CAD240800889001 /* TemporaryFile.swift in Sources */,
 				1A692E511CA4E67900D2D19F /* Foundation.swift in Sources */,
 				1A692E581CA4E67900D2D19F /* Operators.swift in Sources */,
 			);
