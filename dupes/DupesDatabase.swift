@@ -41,12 +41,17 @@ class DupesDatabase {
         ]))
     }
 
-    func removeFileRecord(fileRecord: FileRecord) throws {
-        try removeFileRecord(fileRecord.path)
+    func removeFileRecord(fileRecord: FileRecord) throws -> Bool {
+        return try removeFileRecord(fileRecord.path)
     }
 
-    func removeFileRecord(filePath: String) throws {
-        try connection.run(file.filter(path == filePath).delete())
+    func removeFileRecord(filePath: String) throws -> Bool {
+        let rowCount = try connection.run(file.filter(path == filePath).delete())
+        return rowCount == 1
+    }
+
+    func findFileRecord(filePath: String) -> FileRecord? {
+        return selectFile(filePath)
     }
 
     func allFiles() throws -> AnySequence<FileRecord> {
