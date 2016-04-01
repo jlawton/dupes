@@ -95,10 +95,26 @@ private func editInteractiveDuplicatesList(listURL: NSURL) -> Bool {
             try NSFileManager.defaultManager().removeItemAtURL(rc)
         } catch {}
     }
-    return executeVim(listURL, configFile: rc) != nil
+    return (executeVim(listURL, configFile: rc) ?? executeMVim(listURL, configFile: rc)) != nil
 }
 
 private func executeVim(file: NSURL, configFile: NSURL?) -> Int32? {
+    var arguments = [String]()
+    if let configPath = configFile?.path {
+        arguments.appendContentsOf([ "-u", configPath ])
+    }
+    arguments.append(file.path!)
+
+    let task = ForkExecTask.launchVimWithArguments(arguments)
+
+    if let task = task {
+        task.waitUntilExit()
+        return task.terminationStatus
+    }
+    return nil
+}
+
+private func executeMVim(file: NSURL, configFile: NSURL?) -> Int32? {
     var arguments = [String]()
     if let configPath = configFile?.path {
         arguments.appendContentsOf([ "-u", configPath ])

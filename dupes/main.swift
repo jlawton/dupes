@@ -15,7 +15,6 @@ func printErr(string: String) {
 }
 
 func main() {
-
     let commands = CommandRegistry<DupesError>()
     commands.register(VersionCommand())
     commands.register(AddCommand())

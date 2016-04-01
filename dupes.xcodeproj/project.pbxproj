@@ -53,6 +53,7 @@
 		1A6DEA4C1CA50DF3007F9FC2 /* Sequence+GroupBy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DEA4B1CA50DF3007F9FC2 /* Sequence+GroupBy.swift */; };
 		1A6DEA4F1CA51583007F9FC2 /* PathKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DEA4E1CA514E4007F9FC2 /* PathKit.swift */; };
 		1A6DEA511CA52C61007F9FC2 /* NSData+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DEA501CA52C61007F9FC2 /* NSData+Hex.swift */; };
+		1ABE01131CAEE12B00FCA10A /* ForkExecTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABE01121CAEE12B00FCA10A /* ForkExecTask.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -119,6 +120,8 @@
 		1A6DEA4B1CA50DF3007F9FC2 /* Sequence+GroupBy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Sequence+GroupBy.swift"; sourceTree = "<group>"; };
 		1A6DEA4E1CA514E4007F9FC2 /* PathKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathKit.swift; sourceTree = "<group>"; };
 		1A6DEA501CA52C61007F9FC2 /* NSData+Hex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSData+Hex.swift"; sourceTree = "<group>"; };
+		1ABE01111CAEE12B00FCA10A /* ForkExecTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ForkExecTask.h; sourceTree = "<group>"; };
+		1ABE01121CAEE12B00FCA10A /* ForkExecTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ForkExecTask.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -215,6 +218,7 @@
 			children = (
 				1A4EA56C1CAA7371006DC98D /* Libraries */,
 				1A4EA56B1CAA7365006DC98D /* Commands */,
+				1ABE01101CAEE10300FCA10A /* Exec */,
 				1A692E221CA4DEBA00D2D19F /* Dupes-Bridging-Header.h */,
 				1A692E191CA4C18B00D2D19F /* main.swift */,
 				1A692E201CA4C19B00D2D19F /* FileRecord.swift */,
@@ -276,6 +280,15 @@
 				1A6DEA4E1CA514E4007F9FC2 /* PathKit.swift */,
 			);
 			path = PathKit;
+			sourceTree = "<group>";
+		};
+		1ABE01101CAEE10300FCA10A /* Exec */ = {
+			isa = PBXGroup;
+			children = (
+				1ABE01111CAEE12B00FCA10A /* ForkExecTask.h */,
+				1ABE01121CAEE12B00FCA10A /* ForkExecTask.m */,
+			);
+			name = Exec;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -377,6 +390,7 @@
 				1A4EA5771CAA7488006DC98D /* Result.swift in Sources */,
 				1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */,
 				1A452D991CA8A636009E3F08 /* FileSize.swift in Sources */,
+				1ABE01131CAEE12B00FCA10A /* ForkExecTask.m in Sources */,
 				1A4EA56A1CAA528A006DC98D /* Readline+Sequence.swift in Sources */,
 				1A6DEA4C1CA50DF3007F9FC2 /* Sequence+GroupBy.swift in Sources */,
 				1A692E4B1CA4E67900D2D19F /* Connection.swift in Sources */,
