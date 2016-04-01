@@ -72,6 +72,20 @@ function DupesClearMark(...)
   endif
 endfunction
 
+function DupesGetFilename(lnum)
+  return substitute(getline(a:lnum), '^[x ] ', '', '')
+endfunction
+
+function DupesOpenFile(...)
+  if a:0 > 0 && a:1 == '-R'
+    execute 'silent !open -R' shellescape(DupesGetFilename('.'))
+  else
+    execute 'silent !open' shellescape(DupesGetFilename('.'))
+  endif
+  redraw!
+  " echo DupesGetFilename('.')
+endfunction
+
 function DupesMaps()
   " Marking files
   nnoremap <special> <silent> x :call DupesSetMark('W')<CR>
@@ -86,6 +100,10 @@ function DupesMaps()
   nnoremap <special> <silent> <buffer> <C-D> <C-D>:call DupesNext('b')<CR>
   nnoremap <special> <silent> <buffer> <tab> :call DupesNextGroup()<CR>
   nnoremap <special> <silent> <buffer> <S-tab> :call DupesNextGroup('b')<CR>
+
+  " Opening files
+  nnoremap <special> <silent> <buffer> o :call DupesOpenFile()<CR>
+  nnoremap <special> <silent> <buffer> O :call DupesOpenFile('-R')<CR>
 endfunction
 
 aug Dupes

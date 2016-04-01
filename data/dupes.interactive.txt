@@ -6,9 +6,14 @@
 #  x          Mark a file for deletion and move to the next file
 #  space      Unmark a file and move to the next file
 #  X          Toggle a mark and move to the next file
+#
 #  down       Move to the next file
 #  up         Move to the previous file
-#  Q          Save and quit
 #  tab        Move to the next file group
 #  shift-tab  Move to the previous file group
+#
+#  o          Open file
+#  O          Reveal file in Finder
+#
+#  Q          Save and quit
 

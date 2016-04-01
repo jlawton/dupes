@@ -15,10 +15,12 @@ func printErr(string: String) {
 }
 
 func main() {
+
     let commands = CommandRegistry<DupesError>()
     commands.register(VersionCommand())
     commands.register(AddCommand())
     commands.register(HashCommand())
+    commands.register(InteractiveCommand())
     commands.register(ListCommand())
     commands.register(ReindexCommand())
     commands.register(RemoveCommand())
