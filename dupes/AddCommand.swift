@@ -22,20 +22,28 @@ struct AddCommand: CommandType {
                 let path = Path(rawPath).absolute()
                 try addFile(path, db: db)
             }
+
+            if options.hash {
+                try db.hashAllCandidates()
+            }
         }
     }
 }
 
 struct AddCommandOptions: OptionsType {
     let dbPath: String
+    let hash: Bool
 
-    static func create(dbPath: String) -> AddCommandOptions {
-        return AddCommandOptions(dbPath: dbPath)
+    static func create(dbPath: String) -> Bool -> AddCommandOptions {
+        return { hash in
+            AddCommandOptions(dbPath: dbPath, hash: hash)
+        }
     }
 
     static func evaluate(m: CommandMode) -> Result<AddCommandOptions, CommandantError<DupesError>> {
         return create
             <*> m <| databaseOption
+            <*> m <| Option(key: "hash", defaultValue: false, usage: "Hash the potential duplicates in the database after adding the files")
     }
 }
 
