@@ -34,6 +34,6 @@ struct ReindexCommandOptions: OptionsType {
     static func evaluate(m: CommandMode) -> Result<ReindexCommandOptions, CommandantError<DupesError>> {
         return create
             <*> m <| databaseOption
-            <*> m <| Option(key: "all", defaultValue: false, usage: "Scan all indexed files, not just duplicates")
+            <*> m <| Switch(flag: "a", key: "all", usage: "Scan all indexed files, not just duplicates")
     }
 }
