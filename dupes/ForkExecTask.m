@@ -22,6 +22,7 @@ static char **alloc_argv(NSArray <NSString *>*arguments);
 static void free_argv(char **argv);
 
 @implementation ForkExecTask
+@synthesize terminationStatus = _terminationStatus;
 
 - (instancetype)init {
     return [super init];
@@ -72,11 +73,7 @@ static void free_argv(char **argv);
     pid_t pid = waitpid(_processIdentifier, &_terminationStatus, flags);
 
     if (pid > 0) {
-        if (WIFEXITED(_terminationStatus)) {
-            _terminationReason = NSTaskTerminationReasonExit;
-        } else if (WIFSIGNALED(_terminationStatus)) {
-            _terminationReason = NSTaskTerminationReasonUncaughtSignal;
-        }
+        _processIdentifier = 0;
     }
 }
 
@@ -90,6 +87,20 @@ static void free_argv(char **argv);
     if (!_launched) return NO;
     int status = kill(_processIdentifier, 0);
     return (status == 0);
+}
+
+- (int)terminationStatus {
+    [self collectTerminationStatus:NO];
+    return _terminationStatus;
+}
+
+- (NSTaskTerminationReason)terminationReason {
+    if (WIFEXITED(_terminationStatus)) {
+        return NSTaskTerminationReasonExit;
+    } else if (WIFSIGNALED(_terminationStatus)) {
+        return NSTaskTerminationReasonUncaughtSignal;
+    }
+    return 0;
 }
 
 @end

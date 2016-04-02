@@ -31,7 +31,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly) int processIdentifier;
 @property (readonly, getter=isRunning) BOOL running;
 
-// WARNING: These are only valid if you waitUntilExit when the task is running
+// WARNING: These are only valid if you waitUntilExit or the task has otherwise
+// completed.
 @property (readonly) int terminationStatus;
 @property (readonly) NSTaskTerminationReason terminationReason;
 
