@@ -16,6 +16,7 @@
 		1A2551611CAD220700889001 /* generated_data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551601CAD220700889001 /* generated_data.swift */; };
 		1A2551631CAD240800889001 /* TemporaryFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551621CAD240800889001 /* TemporaryFile.swift */; };
 		1A2551651CAD2A9C00889001 /* InteractiveCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2551641CAD2A9C00889001 /* InteractiveCommand.swift */; };
+		1A423F0D1CAF339400AF4D3B /* RemountCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A423F0C1CAF339400AF4D3B /* RemountCommand.swift */; };
 		1A452D971CA88431009E3F08 /* DupesDatabase+Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */; };
 		1A452D991CA8A636009E3F08 /* FileSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A452D981CA8A636009E3F08 /* FileSize.swift */; };
 		1A4EA56A1CAA528A006DC98D /* Readline+Sequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4EA5691CAA528A006DC98D /* Readline+Sequence.swift */; };
@@ -80,6 +81,7 @@
 		1A2551601CAD220700889001 /* generated_data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generated_data.swift; sourceTree = "<group>"; };
 		1A2551621CAD240800889001 /* TemporaryFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TemporaryFile.swift; sourceTree = "<group>"; };
 		1A2551641CAD2A9C00889001 /* InteractiveCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InteractiveCommand.swift; sourceTree = "<group>"; };
+		1A423F0C1CAF339400AF4D3B /* RemountCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemountCommand.swift; sourceTree = "<group>"; };
 		1A452D961CA88431009E3F08 /* DupesDatabase+Operations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DupesDatabase+Operations.swift"; sourceTree = "<group>"; };
 		1A452D981CA8A636009E3F08 /* FileSize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileSize.swift; sourceTree = "<group>"; };
 		1A4EA55E1CAA4F49006DC98D /* Argument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Argument.swift; sourceTree = "<group>"; };
@@ -176,6 +178,7 @@
 				1A2551521CAD01E900889001 /* HashCommand.swift */,
 				1A2551581CAD072C00889001 /* ListCommand.swift */,
 				1A2551561CAD049400889001 /* ReindexCommand.swift */,
+				1A423F0C1CAF339400AF4D3B /* RemountCommand.swift */,
 				1A2551541CAD03EB00889001 /* RemoveCommand.swift */,
 				1A25515A1CAD0D5C00889001 /* SummaryCommand.swift */,
 				1A25514F1CACFBEA00889001 /* VersionCommand.swift */,
@@ -378,6 +381,7 @@
 				1A692E531CA4E67900D2D19F /* AggregateFunctions.swift in Sources */,
 				1A692E4A1CA4E67900D2D19F /* Blob.swift in Sources */,
 				1A4EA5701CAA747F006DC98D /* ArgumentParser.swift in Sources */,
+				1A423F0D1CAF339400AF4D3B /* RemountCommand.swift in Sources */,
 				1A2551651CAD2A9C00889001 /* InteractiveCommand.swift in Sources */,
 				1A2551501CACFBEA00889001 /* VersionCommand.swift in Sources */,
 				1A4EA5741CAA747F006DC98D /* HelpCommand.swift in Sources */,

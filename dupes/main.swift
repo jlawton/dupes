@@ -22,6 +22,7 @@ func main() {
     commands.register(InteractiveCommand())
     commands.register(ListCommand())
     commands.register(ReindexCommand())
+    commands.register(RemountCommand())
     commands.register(RemoveCommand())
     commands.register(SummaryCommand())
     commands.register(HelpCommand(registry: commands))

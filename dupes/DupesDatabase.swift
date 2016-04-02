@@ -104,6 +104,23 @@ class DupesDatabase {
         return FileRecord(path: row[path], size: row[size], hash: nil)
     }
 
+    func remount(from: String, to: String) throws -> Int {
+        let sep = Path.separator
+        let fromSlash = from.hasSuffix(sep) ? from : (from + sep)
+        let toSlash = to.hasSuffix(sep) ? to : (to + sep)
+        let escapeChar = "\\"
+        let pattern: String = escapeForLike(fromSlash) + "%"
+        let fromLength = fromSlash.characters.count
+        return try connection.sync {
+            try self.connection.run(
+                "UPDATE file" +
+                " SET path = :to || substr(path, :startindex)" +
+                " WHERE path LIKE :pattern ESCAPE :esc",
+                [ ":pattern": pattern, ":startindex": fromLength + 1, ":to": toSlash, ":esc": escapeChar ])
+            return self.connection.changes
+        }
+    }
+
     private func selectFile(filePath: String) -> FileRecord? {
         let row = connection.pluck(file
             .select([path, size, hash])
@@ -115,6 +132,9 @@ class DupesDatabase {
     }
 
     private func createDatabase() throws {
+        // PRAGMAS
+        try connection.run("PRAGMA case_sensitive_like = ON")
+
         // CREATE TABLE IF NOT EXISTS file (size INT NOT NULL, hash TEXT, path TEXT NOT NULL UNIQUE)
         try connection.run(file.create(ifNotExists: true) { t in
             t.column(size)
@@ -172,4 +192,18 @@ extension DupesDatabase {
 
         return Result(value: db)
     }
+}
+
+func escapeForLike(path: String, escapeChar esc: Character = "\\") -> String {
+    // Always escape the escapes first!
+    let escapes = [
+        ("\(esc)", "\(esc)\(esc)"),
+        ("%", "\(esc)%"),
+        ("_", "\(esc)_"),
+    ]
+    var escaped = path
+    for pair in escapes {
+        escaped = escaped.stringByReplacingOccurrencesOfString(pair.0, withString: pair.1)
+    }
+    return escaped
 }
