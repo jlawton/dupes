@@ -17,7 +17,7 @@ func readLines(path: String) -> AnySequence<String> {
 }
 
 // After http://stackoverflow.com/questions/24581517/read-a-file-url-line-by-line-in-swift
-private class StreamReader  {
+private final class StreamReader  {
 
     let encoding : UInt
     let chunkSize : Int

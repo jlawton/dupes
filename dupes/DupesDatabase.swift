@@ -15,7 +15,7 @@ private let hash = Expression<String?>("hash")
 private let sharedSize = View("candidate")
 private let dupe = View("dupe")
 
-class DupesDatabase {
+final class DupesDatabase {
 
     private let connection: Connection
 
