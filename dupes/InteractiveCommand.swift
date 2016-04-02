@@ -124,7 +124,7 @@ private func executeMVim(file: NSURL, configFile: NSURL?) -> Int32? {
     return executeCommandIfExists("mvim", arguments: [ "-f" ] + arguments)
 }
 
-private func executeCommandIfExists(commandName: String, arguments: [String]) -> Int32? {
+func executeCommandIfExists(commandName: String, arguments: [String]) -> Int32? {
     func launchTask(path: String, arguments: [String]) -> Int32 {
         let task = NSTask()
         task.launchPath = path

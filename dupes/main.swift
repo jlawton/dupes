@@ -25,6 +25,7 @@ func main() {
     commands.register(RemountCommand())
     commands.register(RemoveCommand())
     commands.register(SummaryCommand())
+    commands.register(ExecCommand())
     commands.register(HelpCommand(registry: commands))
 
     commands.main(defaultVerb: "help") { error in
