@@ -14,7 +14,7 @@ struct RunCommand: CommandType {
 
     func run(options: RunCommandOptions) -> Result<(), DupesError> {
         return DupesDatabase.open(options.db.path)
-            .tryPassthrough(AddCommand.run)
+            .tryPassthrough({ try AddCommand.run($0) })
             .tryPassthrough(HashCommand.run)
             .flatMap { db in
                 if options.interactive {
