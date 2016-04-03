@@ -13,8 +13,10 @@ struct HashCommand: CommandType {
     let function = "Hash all indexed files that might be duplicates"
 
     func run(options: DatabaseOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.path).tryMap { db in
-            try db.hashAllCandidates()
-        }
+        return DupesDatabase.open(options.path).tryMap(HashCommand.run)
+    }
+
+    static func run(db: DupesDatabase) throws {
+        return try db.hashAllCandidates()
     }
 }

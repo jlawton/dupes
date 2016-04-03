@@ -15,15 +15,19 @@ struct AddCommand: CommandType {
     let function = "Index files passed in on standard input"
 
     func run(options: AddCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.db.path).tryMap { db in
-            for rawPath in readLines() {
-                let path = Path(rawPath).absolute()
-                try addFile(path, db: db)
+        return DupesDatabase.open(options.db.path)
+            .tryPassthrough(AddCommand.run)
+            .tryMap { db in
+                if options.hash {
+                    try HashCommand.run(db)
+                }
             }
+    }
 
-            if options.hash {
-                try db.hashAllCandidates()
-            }
+    static func run(db: DupesDatabase) throws {
+        for rawPath in readLines() {
+            let path = Path(rawPath).absolute()
+            try addFile(path, db: db)
         }
     }
 }
