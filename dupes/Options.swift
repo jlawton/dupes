@@ -48,44 +48,75 @@ struct ListOptions: OptionsType {
 }
 
 struct FileArguments: OptionsType {
+    private let recursive: Bool
     private let givenFilePaths: [String]?
 
     var filesPaths: AnySequence<String> {
         let files = (givenFilePaths != nil)
             ? AnySequence { self.givenFilePaths!.generate() }
             : readLines()
+
+        if recursive {
+            let sequence = files.lazy.flatMap(recursiveFileEnumerator)
+            return AnySequence { sequence.generate() }
+        }
         return files
     }
 
-    static func create(filePaths paths: [String]) -> FileArguments {
-        let filePaths: [String]? = (paths.count > 0) ? paths : nil
-        return FileArguments(givenFilePaths: filePaths)
+    static func create(recursive: Bool) -> [String] -> FileArguments {
+        return { paths in
+            let filePaths: [String]? = (paths.count > 0) ? paths : nil
+            return FileArguments(recursive: recursive, givenFilePaths: filePaths)
+        }
     }
 
     static func evaluate(m: CommandMode) -> Result<FileArguments, CommandantError<DupesError>> {
         return create
+            <*> m <| Switch(flag: "r", key: "recursive", usage: "Recurse files in given directories")
             <*> m <| Argument(defaultValue: [], usage: "Files to index, rather than reading from standard input")
     }
 }
 
-private func recursiveEnumerator(path: String) -> AnySequence<String>? {
+private func recursiveFileEnumerator(path: String) -> AnySequence<String> {
     let fileManager = NSFileManager.defaultManager()
 
+    let expandedPath = "\(Path(path).normalize())"
+
     var isDirectory: ObjCBool = false
-    guard fileManager.fileExistsAtPath(path, isDirectory: &isDirectory) else {
-        return nil
+    guard fileManager.fileExistsAtPath(expandedPath, isDirectory: &isDirectory) else {
+        return AnySequence { AnyGenerator { nil } }
     }
 
     if isDirectory {
-        return AnySequence { fileManager.generatorAtPath(path) }
+        let url = NSURL.fileURLWithPath(expandedPath, isDirectory: true)
+        return AnySequence { fileManager.fileGeneratorAtURL(url) }
     } else {
         return AnySequence { [ path ].generate() }
     }
 }
 
 extension NSFileManager {
-    func generatorAtPath(path: String) -> AnyGenerator<String> {
-        let enumerator = enumeratorAtPath(path)!
-        return AnyGenerator { enumerator.nextObject() as? String }
+    func fileGeneratorAtURL(url: NSURL) -> AnyGenerator<String> {
+        let enumerator = enumeratorAtURL(url,
+            includingPropertiesForKeys: [NSURLIsDirectoryKey],
+            options: [.SkipsHiddenFiles, .SkipsPackageDescendants],
+            errorHandler: nil)
+
+        return AnyGenerator {
+            while let fileURL = enumerator.flatMap({$0.nextObject()}) as? NSURL {
+
+                guard let resourceValues = try? fileURL.resourceValuesForKeys([ NSURLIsDirectoryKey ]),
+                    let isDirectory = resourceValues[NSURLIsDirectoryKey] as? Bool else {
+                        continue
+                }
+
+                if isDirectory {
+                    continue
+                } else {
+                    return fileURL.path
+                }
+            }
+            return nil
+        }
     }
 }
