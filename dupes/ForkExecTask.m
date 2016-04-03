@@ -13,6 +13,10 @@
 
 #import "ForkExecTask.h"
 
+#ifndef _PATH_TTY
+#  define _PATH_TTY "/dev/tty"
+#endif
+
 @interface ForkExecTask () {
     BOOL _launched;
 }
@@ -46,6 +50,20 @@ static void free_argv(char **argv);
     pid_t pid = fork();
 
     if (pid == 0) {  // We're in the child
+
+        if (self.reopenTTY) {
+            int fd = open(_PATH_TTY, O_RDONLY);
+            if (fd == -1) {
+                perror("Failed to open TTY");
+                exit(1);
+            } else {
+                if (dup2(fd, STDIN_FILENO) == -1) {
+                    perror("Can't dup2 to stdin");
+                }
+                close(fd);
+            }
+        }
+
         // Build arguments
         NSArray *arguments = [@[ _launchPath ] arrayByAddingObjectsFromArray:_arguments];
         char *program = strdup(_launchPath.UTF8String);
@@ -58,7 +76,7 @@ static void free_argv(char **argv);
         perror("Exec error");
         free(program);
         free_argv(argv);
-        exit(0);
+        exit(1);
     } else if (pid < 0) { // There was an error
         perror("Fork error");
     } else { // We're in the parent

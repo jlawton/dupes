@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nullable, copy) NSArray<NSString *> *arguments;
 //@property (nullable, copy) NSDictionary<NSString *, NSString *> *environment; // if not set, use current
 //@property (copy) NSString *currentDirectoryPath; // if not set, use current
+@property (nonatomic) BOOL reopenTTY;
 
 // actions
 - (void)launch;
