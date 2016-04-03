@@ -11,13 +11,11 @@ import Foundation
 let databaseOption = Option(key: "db", defaultValue: defaultDatabasePath, usage: "Use the specified database file")
 
 struct AddCommand: CommandType {
-    typealias Options = AddCommandOptions
-
     let verb = "add"
     let function = "Index files passed in on standard input"
 
     func run(options: AddCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.dbPath).tryMap { db in
+        return DupesDatabase.open(options.db.path).tryMap { db in
             for rawPath in readLines() {
                 let path = Path(rawPath).absolute()
                 try addFile(path, db: db)
@@ -31,18 +29,18 @@ struct AddCommand: CommandType {
 }
 
 struct AddCommandOptions: OptionsType {
-    let dbPath: String
+    let db: DatabaseOptions
     let hash: Bool
 
-    static func create(dbPath: String) -> Bool -> AddCommandOptions {
+    static func create(dbOptions: DatabaseOptions) -> Bool -> AddCommandOptions {
         return { hash in
-            AddCommandOptions(dbPath: dbPath, hash: hash)
+            AddCommandOptions(db: dbOptions, hash: hash)
         }
     }
 
     static func evaluate(m: CommandMode) -> Result<AddCommandOptions, CommandantError<DupesError>> {
         return create
-            <*> m <| databaseOption
+            <*> DatabaseOptions.evaluate(m)
             <*> m <| Option(key: "hash", defaultValue: false, usage: "Hash the potential duplicates in the database after adding the files")
     }
 }

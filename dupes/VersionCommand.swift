@@ -11,12 +11,10 @@ import Foundation
 let dupesVersion = "0.1.0"
 
 struct VersionCommand: CommandType {
-    typealias Options = NoOptions<DupesError>
-
     let verb = "version"
     let function = "Display the current version of dupes"
 
-    func run(options: Options) -> Result<(), DupesError> {
+    func run(options: NoOptions<DupesError>) -> Result<(), DupesError> {
         print(dupesVersion)
         return Result(value: ())
     }

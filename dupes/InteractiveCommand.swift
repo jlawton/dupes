@@ -9,13 +9,11 @@
 import Foundation
 
 struct InteractiveCommand: CommandType {
-    typealias Options = InteractiveCommandOptions
-
     let verb = "interactive"
     let function = "List all duplicates interactively"
 
     func run(options: InteractiveCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.dbPath)
+        return DupesDatabase.open(options.db.path)
             .tryMap({ db in
                 let tmp = NSFileHandle.temporaryFile("dupelist", suffix: ".dupes")
                 try writeInteractiveDuplicatesList(db, to: tmp.0)
@@ -59,15 +57,15 @@ struct InteractiveCommand: CommandType {
 }
 
 struct InteractiveCommandOptions: OptionsType {
-    let dbPath: String
+    let db: DatabaseOptions
 
-    static func create(dbPath: String) -> InteractiveCommandOptions {
-        return InteractiveCommandOptions(dbPath: dbPath)
+    static func create(db: DatabaseOptions) -> InteractiveCommandOptions {
+        return InteractiveCommandOptions(db: db)
     }
 
     static func evaluate(m: CommandMode) -> Result<InteractiveCommandOptions, CommandantError<DupesError>> {
         return create
-            <*> m <| databaseOption
+            <*> DatabaseOptions.evaluate(m)
     }
 }
 

@@ -9,31 +9,29 @@
 import Foundation
 
 struct ReindexCommand: CommandType {
-    typealias Options = ReindexCommandOptions
-
     let verb = "reindex"
     let function = "Unindex all deleted duplicates and unhash changed duplicates"
 
     func run(options: ReindexCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.dbPath).tryMap { db in
+        return DupesDatabase.open(options.db.path).tryMap { db in
             try db.reIndex(duplicatesOnly: !options.allFiles)
         }
     }
 }
 
 struct ReindexCommandOptions: OptionsType {
-    let dbPath: String
+    let db: DatabaseOptions
     let allFiles: Bool
 
-    static func create(dbPath: String) -> Bool -> ReindexCommandOptions {
+    static func create(db: DatabaseOptions) -> Bool -> ReindexCommandOptions {
         return { allFiles in
-            ReindexCommandOptions(dbPath: dbPath, allFiles: allFiles)
+            ReindexCommandOptions(db: db, allFiles: allFiles)
         }
     }
 
     static func evaluate(m: CommandMode) -> Result<ReindexCommandOptions, CommandantError<DupesError>> {
         return create
-            <*> m <| databaseOption
+            <*> DatabaseOptions.evaluate(m)
             <*> m <| Switch(flag: "a", key: "all", usage: "Scan all indexed files, not just duplicates")
     }
 }

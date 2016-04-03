@@ -9,27 +9,12 @@
 import Foundation
 
 struct HashCommand: CommandType {
-    typealias Options = HashCommandOptions
-
     let verb = "hash"
     let function = "Hash all indexed files that might be duplicates"
 
-    func run(options: HashCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.dbPath).tryMap { db in
+    func run(options: DatabaseOptions) -> Result<(), DupesError> {
+        return DupesDatabase.open(options.path).tryMap { db in
             try db.hashAllCandidates()
         }
-    }
-}
-
-struct HashCommandOptions: OptionsType {
-    let dbPath: String
-
-    static func create(dbPath: String) -> HashCommandOptions {
-        return HashCommandOptions(dbPath: dbPath)
-    }
-
-    static func evaluate(m: CommandMode) -> Result<HashCommandOptions, CommandantError<DupesError>> {
-        return create
-            <*> m <| databaseOption
     }
 }

@@ -9,13 +9,11 @@
 import Foundation
 
 struct RemountCommand: CommandType {
-    typealias Options = RemountCommandOptions
-
     let verb = "remount"
     let function = "Change the directory prefix of files in the dupes database"
 
     func run(options: RemountCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.dbPath).tryMap { db in
+        return DupesDatabase.open(options.db.path).tryMap { db in
             let moved = try db.remount(options.fromPath, to: options.toPath)
             print("Remounted \(moved) files")
             return ()
@@ -24,19 +22,19 @@ struct RemountCommand: CommandType {
 }
 
 struct RemountCommandOptions: OptionsType {
-    let dbPath: String
+    let db: DatabaseOptions
     let fromPath: String
     let toPath: String
 
-    static func create(dbPath: String) -> String -> String -> RemountCommandOptions {
+    static func create(db: DatabaseOptions) -> String -> String -> RemountCommandOptions {
         return { fromPath in { toPath in
-            RemountCommandOptions(dbPath: dbPath, fromPath: fromPath, toPath: toPath)
+            RemountCommandOptions(db: db, fromPath: fromPath, toPath: toPath)
         } }
     }
 
     static func evaluate(m: CommandMode) -> Result<RemountCommandOptions, CommandantError<DupesError>> {
         return create
-            <*> m <| databaseOption
+            <*> DatabaseOptions.evaluate(m)
             <*> m <| Argument(usage: "Old ount point")
             <*> m <| Argument(usage: "New mount point")
     }

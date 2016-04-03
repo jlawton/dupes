@@ -9,31 +9,29 @@
 import Foundation
 
 struct SummaryCommand: CommandType {
-    typealias Options = SummaryCommandOptions
-
     let verb = "summary"
     let function = "Display summary of duplicates"
 
     func run(options: SummaryCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.dbPath).tryMap { db in
+        return DupesDatabase.open(options.db.path).tryMap { db in
             try db.duplicateStats()
         }
     }
 }
 
 struct SummaryCommandOptions: OptionsType {
-    let dbPath: String
+    let db: DatabaseOptions
     let allFiles: Bool
 
-    static func create(dbPath: String) -> Bool -> SummaryCommandOptions {
+    static func create(db: DatabaseOptions) -> Bool -> SummaryCommandOptions {
         return { allFiles in
-            SummaryCommandOptions(dbPath: dbPath, allFiles: allFiles)
+            SummaryCommandOptions(db: db, allFiles: allFiles)
         }
     }
 
     static func evaluate(m: CommandMode) -> Result<SummaryCommandOptions, CommandantError<DupesError>> {
         return create
-            <*> m <| databaseOption
+            <*> DatabaseOptions.evaluate(m)
             <*> m <| Option(key: "all", defaultValue: false, usage: "Scan all indexed files, not just duplicates")
     }
 }

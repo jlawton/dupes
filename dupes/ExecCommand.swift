@@ -19,13 +19,11 @@ import Foundation
 import Foundation
 
 struct ExecCommand: CommandType {
-    typealias Options = ExecCommandOptions
-
     let verb = "exec"
     let function = "EXPERIMENTAL: Execute a command for each group of duplicates"
 
     func run(options: ExecCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.dbPath).flatMap { db in
+        return DupesDatabase.open(options.db.path).flatMap { db in
             var groups: AnySequence<[FileRecord]>!
             do {
                 groups = try db.groupedDuplicates()
@@ -46,19 +44,19 @@ struct ExecCommand: CommandType {
 }
 
 struct ExecCommandOptions: OptionsType {
-    let dbPath: String
+    let db: DatabaseOptions
     let command: String
     let arguments: [String]
 
-    static func create(dbPath: String) -> String -> [String] -> ExecCommandOptions {
+    static func create(db: DatabaseOptions) -> String -> [String] -> ExecCommandOptions {
         return { command in { args in
-            ExecCommandOptions(dbPath: dbPath, command: command, arguments: args)
+            ExecCommandOptions(db: db, command: command, arguments: args)
         } }
     }
 
     static func evaluate(m: CommandMode) -> Result<ExecCommandOptions, CommandantError<DupesError>> {
         return create
-            <*> m <| databaseOption
+            <*> DatabaseOptions.evaluate(m)
             <*> m <| Argument(usage: "command to run for each duplicates group")
             <*> m <| Argument(defaultValue: [], usage: "arguments to pass to command, before the file paths")
     }
