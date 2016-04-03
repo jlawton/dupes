@@ -8,8 +8,6 @@
 
 import Foundation
 
-let defaultDatabasePath = "~/.dupes.db"
-
 func printErr(string: String) {
     fputs("\(string)\n", __stderrp)
 }

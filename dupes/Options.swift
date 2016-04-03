@@ -8,6 +8,8 @@
 
 import Foundation
 
+let defaultDatabasePath = "~/.dupes.db"
+
 struct DatabaseOptions: OptionsType {
     let path: String
 
@@ -17,7 +19,7 @@ struct DatabaseOptions: OptionsType {
 
     static func evaluate(m: CommandMode) -> Result<DatabaseOptions, CommandantError<DupesError>> {
         return create
-            <*> m <| databaseOption
+            <*> m <| Option(key: "db", defaultValue: defaultDatabasePath, usage: "Use the specified database file")
     }
 }
 
@@ -42,5 +44,48 @@ struct ListOptions: OptionsType {
         return create
             <*> m <| Switch(flag: nil, key: "bare", usage: "Display grouped file paths without summary data")
             <*> m <| Switch(flag: "0", key: "print0", usage: "Separate files with NUL characters, rather than by line. Implies --bare")
+    }
+}
+
+struct FileArguments: OptionsType {
+    private let givenFilePaths: [String]?
+
+    var filesPaths: AnySequence<String> {
+        let files = (givenFilePaths != nil)
+            ? AnySequence { self.givenFilePaths!.generate() }
+            : readLines()
+        return files
+    }
+
+    static func create(filePaths paths: [String]) -> FileArguments {
+        let filePaths: [String]? = (paths.count > 0) ? paths : nil
+        return FileArguments(givenFilePaths: filePaths)
+    }
+
+    static func evaluate(m: CommandMode) -> Result<FileArguments, CommandantError<DupesError>> {
+        return create
+            <*> m <| Argument(defaultValue: [], usage: "Files to index, rather than reading from standard input")
+    }
+}
+
+private func recursiveEnumerator(path: String) -> AnySequence<String>? {
+    let fileManager = NSFileManager.defaultManager()
+
+    var isDirectory: ObjCBool = false
+    guard fileManager.fileExistsAtPath(path, isDirectory: &isDirectory) else {
+        return nil
+    }
+
+    if isDirectory {
+        return AnySequence { fileManager.generatorAtPath(path) }
+    } else {
+        return AnySequence { [ path ].generate() }
+    }
+}
+
+extension NSFileManager {
+    func generatorAtPath(path: String) -> AnyGenerator<String> {
+        let enumerator = enumeratorAtPath(path)!
+        return AnyGenerator { enumerator.nextObject() as? String }
     }
 }

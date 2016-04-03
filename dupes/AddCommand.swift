@@ -8,15 +8,13 @@
 
 import Foundation
 
-let databaseOption = Option(key: "db", defaultValue: defaultDatabasePath, usage: "Use the specified database file")
-
 struct AddCommand: CommandType {
     let verb = "add"
     let function = "Index files passed in on standard input"
 
     func run(options: AddCommandOptions) -> Result<(), DupesError> {
         return DupesDatabase.open(options.db.path)
-            .tryPassthrough({ try AddCommand.run($0, filePaths: options.filePaths) })
+            .tryPassthrough({ try AddCommand.run($0, filePaths: options.files.filesPaths) })
             .tryMap { db in
                 if options.hash {
                     try HashCommand.run(db)
@@ -24,12 +22,8 @@ struct AddCommand: CommandType {
             }
     }
 
-    static func run(db: DupesDatabase, filePaths: [String]? = nil) throws {
-        let files = (filePaths != nil)
-            ? AnySequence { filePaths!.generate() }
-            : readLines()
-
-        for rawPath in files {
+    static func run(db: DupesDatabase, filePaths: AnySequence<String>) throws {
+        for rawPath in filePaths {
             let path = Path(rawPath).absolute()
             try addFile(path, db: db)
         }
@@ -39,12 +33,11 @@ struct AddCommand: CommandType {
 struct AddCommandOptions: OptionsType {
     let db: DatabaseOptions
     let hash: Bool
-    let filePaths: [String]?
+    let files: FileArguments
 
-    static func create(dbOptions: DatabaseOptions) -> Bool -> [String] -> AddCommandOptions {
-        return { hash in { paths in
-            let filePaths: [String]? = (paths.count > 0) ? paths : nil
-            return AddCommandOptions(db: dbOptions, hash: hash, filePaths: filePaths)
+    static func create(dbOptions: DatabaseOptions) -> Bool -> FileArguments -> AddCommandOptions {
+        return { hash in { files in
+            return AddCommandOptions(db: dbOptions, hash: hash, files: files)
         } }
     }
 
@@ -52,7 +45,7 @@ struct AddCommandOptions: OptionsType {
         return create
             <*> DatabaseOptions.evaluate(m)
             <*> m <| Option(key: "hash", defaultValue: false, usage: "Hash the potential duplicates in the database after adding the files")
-            <*> m <| Argument(defaultValue: [], usage: "Files to index, rather than reading from standard input")
+            <*> FileArguments.evaluate(m)
     }
 }
 

@@ -14,7 +14,7 @@ struct RunCommand: CommandType {
 
     func run(options: RunCommandOptions) -> Result<(), DupesError> {
         return DupesDatabase.open(options.db.path)
-            .tryPassthrough({ try AddCommand.run($0) })
+            .tryPassthrough({ try AddCommand.run($0, filePaths: options.files.filesPaths) })
             .tryPassthrough(HashCommand.run)
             .flatMap { db in
                 if options.interactive {
@@ -32,11 +32,12 @@ struct RunCommandOptions: OptionsType {
     let db: DatabaseOptions
     let list: ListOptions
     let interactive: Bool
+    let files: FileArguments
 
-    static func create(db: DatabaseOptions) -> ListOptions -> Bool -> RunCommandOptions {
-        return { list in { interactive in
-            RunCommandOptions(db: db, list: list, interactive: interactive)
-        } }
+    static func create(db: DatabaseOptions) -> ListOptions -> Bool -> FileArguments -> RunCommandOptions {
+        return { list in { interactive in { files in
+            RunCommandOptions(db: db, list: list, interactive: interactive, files: files)
+        } } }
     }
 
     static func evaluate(m: CommandMode) -> Result<RunCommandOptions, CommandantError<DupesError>> {
@@ -44,5 +45,6 @@ struct RunCommandOptions: OptionsType {
             <*> DatabaseOptions.evaluate(m)
             <*> ListOptions.evaluate(m)
             <*> m <| Switch(flag: nil, key: "interactive", usage: "Use interactive mode instead of list mode")
+            <*> FileArguments.evaluate(m)
     }
 }
