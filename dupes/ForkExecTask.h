@@ -43,7 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 // This will return `nil` if we're not in a Terminal, have redirected input or
 // output, or if vim isn't found or fails to launch.
-+ (nullable instancetype)launchVimWithArguments:(NSArray<NSString *> *)arguments;
++ (nullable instancetype)launchVimWithArguments:(NSArray<NSString *> *)arguments reopenTTY:(BOOL)reopenTTY;
 
 @end
 

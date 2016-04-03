@@ -13,10 +13,10 @@ struct InteractiveCommand: CommandType {
     let function = "List all duplicates interactively"
 
     func run(options: InteractiveCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.db.path).flatMap(InteractiveCommand.run)
+        return DupesDatabase.open(options.db.path).flatMap { InteractiveCommand.run($0, reopenTTY: false) }
     }
 
-    static func run(db: DupesDatabase) -> Result<(), DupesError> {
+    static func run(db: DupesDatabase, reopenTTY: Bool) -> Result<(), DupesError> {
         return Result(value: db)
             .tryMap({ db in
                 let tmp = NSFileHandle.temporaryFile("dupelist", suffix: ".dupes")
@@ -25,7 +25,7 @@ struct InteractiveCommand: CommandType {
                 return (db, tmp.1)
             })
             .flatMap({ (db: DupesDatabase, listURL: NSURL) -> Result<(DupesDatabase, NSURL), DupesError> in
-                if editInteractiveDuplicatesList(listURL) {
+                if editInteractiveDuplicatesList(listURL, reopenTTY: reopenTTY) {
                     return Result(value: (db, listURL))
                 }
                 do { try NSFileManager.defaultManager().removeItemAtURL(listURL) } catch {}
@@ -90,24 +90,24 @@ private func writeInteractiveDuplicatesList(db: DupesDatabase, to fileHandle: NS
     }
 }
 
-private func editInteractiveDuplicatesList(listURL: NSURL) -> Bool {
+private func editInteractiveDuplicatesList(listURL: NSURL, reopenTTY: Bool) -> Bool {
     let rc = writeVimrc()
     defer {
         do {
             try NSFileManager.defaultManager().removeItemAtURL(rc)
         } catch {}
     }
-    return (executeVim(listURL, configFile: rc) ?? executeMVim(listURL, configFile: rc)) != nil
+    return (executeVim(listURL, configFile: rc, reopenTTY: reopenTTY) ?? executeMVim(listURL, configFile: rc)) != nil
 }
 
-private func executeVim(file: NSURL, configFile: NSURL?) -> Int32? {
+private func executeVim(file: NSURL, configFile: NSURL?, reopenTTY: Bool) -> Int32? {
     var arguments = [String]()
     if let configPath = configFile?.path {
         arguments.appendContentsOf([ "-u", configPath ])
     }
     arguments.append(file.path!)
 
-    let task = ForkExecTask.launchVimWithArguments(arguments)
+    let task = ForkExecTask.launchVimWithArguments(arguments, reopenTTY: reopenTTY)
 
     if let task = task {
         task.waitUntilExit()
