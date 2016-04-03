@@ -13,7 +13,11 @@ struct InteractiveCommand: CommandType {
     let function = "List all duplicates interactively"
 
     func run(options: InteractiveCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.db.path)
+        return DupesDatabase.open(options.db.path).flatMap(InteractiveCommand.run)
+    }
+
+    static func run(db: DupesDatabase) -> Result<(), DupesError> {
+        return Result(value: db)
             .tryMap({ db in
                 let tmp = NSFileHandle.temporaryFile("dupelist", suffix: ".dupes")
                 try writeInteractiveDuplicatesList(db, to: tmp.0)
