@@ -18,8 +18,13 @@ struct DatabaseOptions: OptionsType {
     }
 
     static func evaluate(m: CommandMode) -> Result<DatabaseOptions, CommandantError<DupesError>> {
+        let databasePathFromEnvironment = NSProcessInfo.processInfo().environment["DUPES_DB_PATH"]
+        let databasePath = databasePathFromEnvironment ?? defaultDatabasePath
+        let defaultPathUsage = databasePathFromEnvironment == nil
+            ? "default: \(databasePath)"
+            : "DUPES_DB_PATH: \(databasePath)"
         return create
-            <*> m <| Option(key: "db", defaultValue: defaultDatabasePath, usage: "Use the specified database file")
+            <*> m <| Option(key: "db", defaultValue: databasePath, usage: "Use the specified database file (\(defaultPathUsage))")
     }
 }
 
