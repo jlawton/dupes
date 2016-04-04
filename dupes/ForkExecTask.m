@@ -54,15 +54,8 @@ static void free_argv(char **argv);
     if (pid == 0) {  // We're in the child
 
         if (self.reopenTTY) {
-            int fd = open(_PATH_TTY, O_RDONLY);
-            if (fd == -1) {
-                perror("Failed to open TTY");
+            if (!reopenStandardInputTTY()) {
                 exit(1);
-            } else {
-                if (dup2(fd, STDIN_FILENO) == -1) {
-                    perror("Can't dup2 to stdin");
-                }
-                close(fd);
             }
         }
 
@@ -124,6 +117,22 @@ static void free_argv(char **argv);
 }
 
 @end
+
+BOOL reopenStandardInputTTY() {
+    int fd = open(_PATH_TTY, O_RDONLY);
+    if (fd == -1) {
+        perror("Failed to open TTY");
+        return NO;
+    } else {
+        if (dup2(fd, STDIN_FILENO) == -1) {
+            perror("Can't dup2 to stdin");
+            close(fd);
+            return NO;
+        }
+        close(fd);
+        return YES;
+    }
+}
 
 static char **alloc_argv(NSArray <NSString *>*arguments) {
     char **argv = calloc(arguments.count + 1, sizeof(char *));
