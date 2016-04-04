@@ -48,7 +48,7 @@ struct ListOptions: OptionsType {
     static func evaluate(m: CommandMode) -> Result<ListOptions, CommandantError<DupesError>> {
         return create
             <*> m <| Switch(flag: nil, key: "bare", usage: "Display grouped file paths without summary data")
-            <*> m <| Switch(flag: "0", key: "print0", usage: "Separate files with NUL characters, rather than by line. Implies --bare")
+            <*> m <| Switch(flag: nil, key: "print0", usage: "Separate files with NUL characters, rather than by line. Implies --bare")
     }
 }
 
