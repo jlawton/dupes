@@ -21,7 +21,8 @@ extension NSFileHandle {
 
         // Fill buffer with a C string representing the local file system path.
         var buffer = [Int8](count: Int(PATH_MAX), repeatedValue: 0)
-        assert(template.getFileSystemRepresentation(&buffer, maxLength: buffer.count))
+        let ok = template.getFileSystemRepresentation(&buffer, maxLength: buffer.count)
+        assert(ok, "Failed to get file system representation")
 
         // Create unique file name (and open file):
         let fd = mkstemps(&buffer, suffixLength)
