@@ -47,6 +47,28 @@ struct ListOptions: OptionsType {
     }
 }
 
+struct DeleteOptions: OptionsType {
+    let trash: Bool
+
+    func deleteFile(path: String) throws {
+        let url = NSURL(fileURLWithPath: path)
+        if trash {
+            try NSFileManager.defaultManager().trashItemAtURL(url, resultingItemURL: nil)
+        } else {
+            try NSFileManager.defaultManager().removeItemAtURL(url)
+        }
+    }
+
+    static func create(trash: Bool) -> DeleteOptions {
+        return DeleteOptions(trash: trash)
+    }
+
+    static func evaluate(m: CommandMode) -> Result<DeleteOptions, CommandantError<DupesError>> {
+        return create
+            <*> m <| Switch(flag: nil, key: "trash", usage: "Trash files rather than deleting them")
+    }
+}
+
 struct FileArguments: OptionsType {
     private let recursive: Bool
     private let givenFilePaths: [String]?

@@ -13,10 +13,10 @@ struct InteractiveCommand: CommandType {
     let function = "List all duplicates interactively"
 
     func run(options: InteractiveCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.db.path).flatMap { InteractiveCommand.run($0, reopenTTY: false) }
+        return DupesDatabase.open(options.db.path).flatMap { InteractiveCommand.run($0, deleteOptions: options.delete, reopenTTY: false) }
     }
 
-    static func run(db: DupesDatabase, reopenTTY: Bool) -> Result<(), DupesError> {
+    static func run(db: DupesDatabase, deleteOptions: DeleteOptions, reopenTTY: Bool) -> Result<(), DupesError> {
         return Result(value: db)
             .tryMap({ db in
                 let tmp = NSFileHandle.temporaryFile("dupelist", suffix: ".dupes")
@@ -51,8 +51,36 @@ struct InteractiveCommand: CommandType {
 
                 print("Marked \(filesToDelete.count) files with total size \(human(size))\n")
 
+                if filesToDelete.count == 0 {
+                    return Result(value: ())
+                }
+
+                if isatty(STDIN_FILENO) != 1 {
+                    reopenStandardInputTTY()
+                }
+
+                var ok = false
+                while !ok {
+                    guard let ans = prompt("Are you sure you want to delete these files? [yn]", defaultChoice: ":") else {
+                        return Result(value: ())
+                    }
+                    switch ans {
+                    case "n", "N": return Result(value: ())
+                    case "l", "L":
+                        for f in filesToDelete {
+                            print("\(f.unwrap.path)")
+                        }
+                    case "y", "Y": ok = true
+                    default: break
+                    }
+                }
+
                 for f in filesToDelete {
-                    print("\(f.unwrap.path)")
+                    do {
+                        try deleteOptions.deleteFile("\(f.unwrap.path)")
+                    } catch {
+                        printErr("Failed to remove \(f.unwrap.path): \((error as NSError).localizedDescription)")
+                    }
                 }
 
                 return Result(value: ())
@@ -62,14 +90,18 @@ struct InteractiveCommand: CommandType {
 
 struct InteractiveCommandOptions: OptionsType {
     let db: DatabaseOptions
+    let delete: DeleteOptions
 
-    static func create(db: DatabaseOptions) -> InteractiveCommandOptions {
-        return InteractiveCommandOptions(db: db)
+    static func create(db: DatabaseOptions) -> DeleteOptions -> InteractiveCommandOptions {
+        return { delete in
+            InteractiveCommandOptions(db: db, delete: delete)
+        }
     }
 
     static func evaluate(m: CommandMode) -> Result<InteractiveCommandOptions, CommandantError<DupesError>> {
         return create
             <*> DatabaseOptions.evaluate(m)
+            <*> DeleteOptions.evaluate(m)
     }
 }
 
@@ -182,4 +214,3 @@ private func parseMarkedList(url: NSURL) -> AnySequence<Marked<String>> {
             .generate()
     }
 }
-
