@@ -8,36 +8,52 @@
 
 import Foundation
 
-private let file = Table("file")
+private let file = Table("file", database: "main")
+private let sharedSize = View("candidate", database: "main")
+private let dupe = View("dupe", database: "main")
+private let id = Expression<Int64>("id")
 private let path = Expression<String>("path")
 private let size = Expression<Int>("size")
 private let hash = Expression<String?>("hash")
-private let sharedSize = View("candidate")
-private let dupe = View("dupe")
+
+private let added = Table("added", database: "temp")
+private let addedSharedSize = View("added_candidate", database: "temp")
+private let addedDupe = View("added_dupe", database: "temp")
+private let file_id = Expression<Int64>("file_id")
 
 final class DupesDatabase {
 
     private let connection: Connection
+    private let trackAdditions: Bool
 
-    init(location: Connection.Location) throws {
+    init(location: Connection.Location, trackAdditions: Bool = false) throws {
+        self.trackAdditions = trackAdditions
+
         try connection = Connection(location)
         try createDatabase()
+
+        if trackAdditions {
+            try createTemporaries()
+        }
     }
 
     func addFileRecord(fileRecord: FileRecord, force: Bool = false) throws {
+        var fileRecordToInsert = fileRecord
+
         // Don't update if we'd just be deleting a hash
         if !force && (fileRecord.hash == nil) {
             if let existing = selectFile(fileRecord.path) {
                 if existing.size == fileRecord.size {
-                    return
+                    guard trackAdditions else { return }
+                    fileRecordToInsert = existing
                 }
             }
         }
 
         try connection.run(file.insert(or: .Replace, [
-            path <- fileRecord.path,
-            size <- fileRecord.size,
-            hash <- fileRecord.hash
+            path <- fileRecordToInsert.path,
+            size <- fileRecordToInsert.size,
+            hash <- fileRecordToInsert.hash
         ]))
     }
 
@@ -60,15 +76,20 @@ final class DupesDatabase {
         return fileRecords(query)
     }
 
-    func duplicates() throws -> AnySequence<FileRecord> {
-        let query = try connection.prepare(dupe
+    func duplicates(addedOnly addedOnly: Bool = false) throws -> AnySequence<FileRecord> {
+        if addedOnly {
+            assert(self.trackAdditions)
+        }
+        let table = addedOnly ? addedDupe : dupe
+
+        let query = try connection.prepare(table
             .select([path, size, hash])
             .order([size.desc, hash]))
         return fileRecords(query)
     }
 
-    func groupedDuplicates() throws -> AnySequence<[FileRecord]> {
-        return try duplicates().groupBy({ "\($0.size):\($0.hash!)" })
+    func groupedDuplicates(addedOnly addedOnly: Bool = false) throws -> AnySequence<[FileRecord]> {
+        return try duplicates(addedOnly: addedOnly).groupBy({ "\($0.size):\($0.hash!)" })
     }
 
     func duplicates(fileRecord: FileRecord) throws -> [FileRecord] {
@@ -86,8 +107,13 @@ final class DupesDatabase {
         return []
     }
 
-    func filesToHash() throws -> AnySequence<FileRecord> {
-        let query = try connection.prepare(sharedSize
+    func filesToHash(addedOnly addedOnly: Bool = false) throws -> AnySequence<FileRecord> {
+        if addedOnly {
+            assert(self.trackAdditions)
+        }
+        let table = addedOnly ? addedSharedSize : sharedSize
+
+        let query = try connection.prepare(table
             .select([path, size])
             .order(size.desc)
         ).lazy.map({ row in
@@ -127,21 +153,18 @@ final class DupesDatabase {
         // PRAGMAS
         try connection.run("PRAGMA case_sensitive_like = ON")
 
-        // CREATE TABLE IF NOT EXISTS file (size INT NOT NULL, hash TEXT, path TEXT NOT NULL UNIQUE)
+        // CREATE TABLE IF NOT EXISTS file (id INTEGER PRIMARY KEY, size INT NOT NULL, hash TEXT, path TEXT NOT NULL UNIQUE)
         try connection.run(file.create(ifNotExists: true) { t in
+            t.column(id, primaryKey: true)
             t.column(size)
             t.column(hash)
             t.column(path, unique: true)
         })
 
-        // CREATE INDEX IF NOT EXISTS size_hash_idx
-        // ON file (size, hash)
+        // CREATE INDEX IF NOT EXISTS index_file_on_size_hash
+        // ON added (size, hash)
         try connection.run(file.createIndex([size, hash], unique: false, ifNotExists: true))
 
-        // CREATE VIEW IF NOT EXISTS candidate
-        // AS SELECT path, size
-        // FROM (file, (SELECT size AS duplicated_size FROM file GROUP BY size HAVING COUNT(*) > 1))
-        // WHERE size == duplicated_size AND hash IS NULL
         try connection.run(
             "CREATE VIEW IF NOT EXISTS candidate" +
             " AS SELECT path, size" +
@@ -149,15 +172,58 @@ final class DupesDatabase {
             " WHERE size == duplicated_size AND hash IS NULL"
         )
 
-        // CREATE VIEW dupe
-        // AS SELECT path, size, hash
-        // FROM (file, (SELECT size AS duplicated_size, hash AS duplicated_hash FROM file GROUP BY size, hash HAVING COUNT(*) > 1))
-        // WHERE size == duplicated_size AND hash == duplicated_hash
         try connection.run(
-            "CREATE VIEW IF NOT EXISTS dupe " +
-            " AS SELECT path, size, hash" +
+            "CREATE VIEW IF NOT EXISTS dupe" +
+            " AS SELECT id, path, size, hash" +
             " FROM (file, (SELECT size AS duplicated_size, hash AS duplicated_hash FROM file GROUP BY size, hash HAVING COUNT(*) > 1))" +
             " WHERE size == duplicated_size AND hash == duplicated_hash"
+        )
+    }
+
+    private func createTemporaries() throws {
+        // PRAGMAS
+        try connection.run("PRAGMA foreign_keys = ON")
+
+        // CREATE TEMP TABLE added (file_id INTEGER PRIMARY KEY NOT NULL REFERENCES file ON DELETE CASCADE, size INT NOT NULL, hash TEXT)
+        try connection.run(added.create(temporary: true, ifNotExists: true) { t in
+            t.column(file_id, primaryKey: true)
+            t.column(size)
+            t.column(hash)
+            t.foreignKey(file_id, references: file, rowid, update: nil, delete: .Cascade)
+        })
+
+        // CREATE INDEX IF NOT EXISTS temp.index_added_on_size_hash
+        // ON added (size, hash)
+        try connection.run(added.createIndex([size, hash], unique: false, ifNotExists: true))
+
+        try connection.run(
+            "CREATE TEMP TRIGGER IF NOT EXISTS record_file_added AFTER INSERT ON main.file" +
+            "  FOR EACH ROW" +
+            "  BEGIN" +
+            "    INSERT INTO added (file_id, size, hash) VALUES (NEW.id, NEW.size, NEW.hash);" +
+            "  END"
+        )
+
+        try connection.run(
+            "CREATE TEMP TRIGGER IF NOT EXISTS record_file_updated AFTER UPDATE ON main.file" +
+            "  FOR EACH ROW" +
+            "  BEGIN" +
+            "    UPDATE added SET size = NEW.size, hash = NEW.hash WHERE file_id = NEW.id;" +
+            "  END"
+        )
+
+        try connection.run(
+            "CREATE TEMP VIEW IF NOT EXISTS temp.added_candidate" +
+            " AS SELECT DISTINCT candidate.path, candidate.size" +
+            " FROM (main.candidate, temp.added)" +
+            " WHERE candidate.size == added.size"
+        )
+
+        try connection.run(
+            "CREATE TEMP VIEW IF NOT EXISTS temp.added_dupe" +
+            " AS SELECT DISTINCT path, dupe.size, dupe.hash" +
+            " FROM (main.dupe, temp.added)" +
+            " WHERE dupe.size == added.size AND dupe.hash == added.hash"
         )
     }
 
@@ -172,11 +238,11 @@ func fileRecords<S: SequenceType where S.Generator.Element == Row>(query: S) -> 
 }
 
 extension DupesDatabase {
-    static func open(path: String) -> Result<DupesDatabase, DupesError> {
+    static func open(path: String, trackAdditions: Bool = false) -> Result<DupesDatabase, DupesError> {
         var _db: DupesDatabase?
         let dbPath = "\(Path(path).absolute())"
         do {
-            _db = try DupesDatabase(location: .URI(dbPath))
+            _db = try DupesDatabase(location: .URI(dbPath), trackAdditions: trackAdditions)
         } catch let e {
             return Result(error: .Database("\(e)", db: dbPath))
         }
