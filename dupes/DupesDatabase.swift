@@ -96,14 +96,6 @@ final class DupesDatabase {
         return AnySequence { query.generate() }
     }
 
-    func nextFileToHash() -> FileRecord? {
-        let query = sharedSize
-            .select([path, size])
-            .limit(1)
-        guard let row = connection.pluck(query) else { return nil }
-        return FileRecord(path: row[path], size: row[size], hash: nil)
-    }
-
     func remount(from: String, to: String) throws -> Int {
         let sep = Path.separator
         let fromSlash = from.hasSuffix(sep) ? from : (from + sep)
