@@ -15,34 +15,43 @@ It is based on a database and hashing, so that work can be done incrementally. F
 Usage
 -----
 
-Add files to the `dupes` database, recording their sizes (by default, a database is created in your home directory):
+By default, `dupes` creates a database at `~/.dupes.db` to store its index. This can be changed with the `DUPES_DB_PATH` environment variable, or using the `--db` command line option.
+
+The most basic usage is to add files to the index and list duplicates found in the index. It can be done in one step:
+
+```
+$ dupes run --recursive ~/Documents
+```
+
+But it is also sometimes useful to break down the process into multiple steps. Add files to the `dupes` database, recording their sizes:
 
 ```
 $ find ~ -type f | dupes add
 ```
 
-Hash all files in the database which haven't been hashed, but have the same size as other indexed files:
+Hash all files in the database which haven't been hashed, but have the same size as other indexed files (this can be done independently because it can be very I/O heavy):
 
 ```
 $ dupes hash
 ```
 
-List all duplicate files, in groups:
+List all duplicate files, in groups, largest files first:
 
 ```
 $ dupes list
 ```
 
-Interact with the list of duplicates in a way which allows easy manual marking of files for deletion:
+Interact with the list of duplicates in a way which allows easy manual marking of files to be trashed:
 
 ```
-$ dupes interactive
+$ dupes interactive --trash
 ```
 
-See all possible commands:
+See all possible commands and options:
 
 ```
 $ dupes help
+$ dupes help run
 ```
 
 Caveats
@@ -53,7 +62,7 @@ File comparison is based on hashes (currently MD5). Having indexed ~1m files for
 Dependencies
 ------------
 
-dupes is a command line tool, and I didn't want to depend on external frameworks, which would complicate installation. It is written in Swift, which currently doesn't support static libraries. So, some code has been borrowed, only slightly modified, from other open source projects:
+`dupes` is a command line tool, and I didn't want to depend on external frameworks, which would complicate installation. It is written in Swift, which currently doesn't support static libraries. So, some code has been borrowed, only slightly modified, from other open source projects:
 
  * [Commandant](https://github.com/Carthage/Commandant) (MIT licensed)
  * [PathKit](https://github.com/kylef/PathKit) (BSD 2-Clause licensed)
