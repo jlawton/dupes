@@ -265,3 +265,32 @@ func escapeForLike(path: String, escapeChar esc: Character = "\\") -> String {
     }
     return escaped
 }
+
+
+private let vacuumThreshold = 0.5
+
+extension DupesDatabase {
+    func vacuum(force force: Bool = false) throws {
+        if !force {
+            let stats = databasePageStats()
+            let freeRatio = Double(stats.freelistCount) / Double(stats.pageCount)
+            if freeRatio < vacuumThreshold {
+                return
+            }
+        }
+        try connection.run("VACUUM")
+    }
+
+    private func scalarInt(SQL: String) -> Int? {
+        guard let value = connection.scalar(SQL) as? Int.Datatype else {
+            return nil
+        }
+        return Int.fromDatatypeValue(value)
+    }
+
+    private func databasePageStats() -> (freelistCount: Int, pageCount: Int) {
+        let freelistCount = scalarInt("PRAGMA freelist_count")
+        let pageCount = scalarInt("PRAGMA page_count")
+        return (freelistCount: freelistCount ?? 1, pageCount: pageCount ?? 1)
+    }
+}

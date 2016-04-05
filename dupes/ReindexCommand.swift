@@ -15,6 +15,9 @@ struct ReindexCommand: CommandType {
     func run(options: ReindexCommandOptions) -> Result<(), DupesError> {
         return DupesDatabase.open(options.db.path).tryMap { db in
             try db.reIndex(duplicatesOnly: !options.allFiles)
+
+            // Since we're housekeeping, try to free up space and reduce fragmentation
+            do { try db.vacuum(force: true) } catch {}
         }
     }
 }

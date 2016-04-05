@@ -87,6 +87,9 @@ struct InteractiveCommand: CommandType {
                     } catch {}
                 }
 
+                // We might have had a significant number of deletions
+                do { try db.vacuum() } catch {}
+
                 return Result(value: ())
             })
     }
