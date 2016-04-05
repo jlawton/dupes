@@ -61,14 +61,14 @@ struct InteractiveCommand: CommandType {
 
                 var ok = false
                 while !ok {
-                    guard let ans = prompt("Are you sure you want to delete these files? [yn]", defaultChoice: ":") else {
+                    guard let ans = prompt("Are you sure you want to delete these files? [yes/no/list]", defaultChoice: ":") else {
                         return Result(value: ())
                     }
                     switch ans {
                     case "n", "N": return Result(value: ())
                     case "l", "L":
                         for f in filesToDelete {
-                            print("\(f.unwrap.path)")
+                            print(f.unwrap.path)
                         }
                     case "y", "Y": ok = true
                     default: break
@@ -77,10 +77,14 @@ struct InteractiveCommand: CommandType {
 
                 for f in filesToDelete {
                     do {
-                        try deleteOptions.deleteFile("\(f.unwrap.path)")
+                        try deleteOptions.deleteFile(f.unwrap.path)
                     } catch {
                         printErr("Failed to remove \(f.unwrap.path): \((error as NSError).localizedDescription)")
+                        continue
                     }
+                    do {
+                        try db.removeFileRecord(f.unwrap)
+                    } catch {}
                 }
 
                 return Result(value: ())
