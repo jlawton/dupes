@@ -7,19 +7,20 @@
 //
 
 import Foundation
+import Commandant
 
-struct ReindexCommand: CommandType {
+struct ReindexCommand: CommandProtocol {
     let verb = "reindex"
     let function = "Unindex all deleted duplicates and unhash changed duplicates"
 
-    func run(options: ReindexCommandOptions) -> Result<(), DupesError> {
+    func run(_ options: ReindexCommandOptions) -> Result<(), DupesError> {
         return DupesDatabase.open(options.db.path)
             .tryPassthrough { db in
                 try db.reIndex(duplicatesOnly: !options.allFiles)
             }
             .tryPassthrough { db in
                 if options.hash {
-                    try HashCommand.run(db)
+                    try HashCommand.run(db: db)
                 }
             }
             .tryMap { db in
@@ -29,18 +30,18 @@ struct ReindexCommand: CommandType {
     }
 }
 
-struct ReindexCommandOptions: OptionsType {
+struct ReindexCommandOptions: OptionsProtocol {
     let db: DatabaseOptions
     let hash: Bool
     let allFiles: Bool
 
-    static func create(db: DatabaseOptions) -> Bool -> Bool -> ReindexCommandOptions {
+    static func create(db: DatabaseOptions) -> (Bool) -> (Bool) -> ReindexCommandOptions {
         return { hash in { allFiles in
             ReindexCommandOptions(db: db, hash: hash, allFiles: allFiles)
         } }
     }
 
-    static func evaluate(m: CommandMode) -> Result<ReindexCommandOptions, CommandantError<DupesError>> {
+    static func evaluate(_ m: CommandMode) -> Result<ReindexCommandOptions, CommandantError<DupesError>> {
         return create
             <*> DatabaseOptions.evaluate(m)
             <*> m <| Option(key: "hash", defaultValue: false, usage: "Hash the potential duplicates after reindexing")

@@ -7,39 +7,40 @@
 //
 
 import Foundation
+import Commandant
 
-struct InteractiveCommand: CommandType {
+struct InteractiveCommand: CommandProtocol {
     let verb = "interactive"
     let function = "List all duplicates interactively"
 
-    func run(options: InteractiveCommandOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.db.path).flatMap { InteractiveCommand.run($0, deleteOptions: options.delete, reopenTTY: false) }
+    func run(_ options: InteractiveCommandOptions) -> Result<(), DupesError> {
+        return DupesDatabase.open(options.db.path).flatMap { InteractiveCommand.run(db: $0, deleteOptions: options.delete, reopenTTY: false) }
     }
 
     static func run(db: DupesDatabase, deleteOptions: DeleteOptions, reopenTTY: Bool) -> Result<(), DupesError> {
         return Result(value: db)
             .tryMap({ db in
-                let tmp = NSFileHandle.temporaryFile("dupelist", suffix: ".dupes")
-                try writeInteractiveDuplicatesList(db, to: tmp.0)
+                let tmp = FileHandle.temporaryFile(name: "dupelist", suffix: ".dupes")
+                try writeInteractiveDuplicatesList(db: db, to: tmp.0)
                 tmp.0.closeFile()
                 return (db, tmp.1)
             })
-            .flatMap({ (db: DupesDatabase, listURL: NSURL) -> Result<(DupesDatabase, NSURL), DupesError> in
+            .flatMap({ (db: DupesDatabase, listURL: URL) -> Result<(DupesDatabase, URL), DupesError> in
                 if editInteractiveDuplicatesList(listURL, reopenTTY: reopenTTY) {
-                    return Result(value: (db, listURL))
+                    return .success((db, listURL))
                 }
-                do { try NSFileManager.defaultManager().removeItemAtURL(listURL) } catch {}
+                do { try FileManager.default.removeItem(at: listURL) } catch {}
                 return Result(error: .Unknown("Command not found: mvim"))
             })
-            .flatMap({ (db: DupesDatabase, listURL: NSURL) -> Result<(), DupesError> in
+            .flatMap({ (db: DupesDatabase, listURL: URL) -> Result<(), DupesError> in
                 defer {
                     do {
-                        try NSFileManager.defaultManager().removeItemAtURL(listURL)
+                        try FileManager.default.removeItem(at: listURL)
                     } catch {}
                 }
 
-                let filesToDelete = parseMarkedList(listURL).flatMap({ (marked: Marked<String>) -> Marked<FileRecord>? in
-                    marked.flatMap { db.findFileRecord($0) }
+                let filesToDelete = parseMarkedList(listURL).compactMap({ (marked: Marked<String>) -> Marked<FileRecord>? in
+                    marked.flatMap { db.findFileRecord(filePath: $0) }
                 })
 
                 let size = filesToDelete.map({ (marked: Marked<FileRecord>) -> Int in
@@ -47,7 +48,7 @@ struct InteractiveCommand: CommandType {
                     case .ForDeletion(let record):
                         return record.size
                     }
-                }).reduce(0, combine: +)
+                }).reduce(0, +)
 
                 print("Marked \(filesToDelete.count) files with total size \(human(size))\n")
 
@@ -83,7 +84,7 @@ struct InteractiveCommand: CommandType {
                         continue
                     }
                     do {
-                        try db.removeFileRecord(f.unwrap)
+                        _ = try db.removeFileRecord(f.unwrap)
                     } catch {}
                 }
 
@@ -95,58 +96,58 @@ struct InteractiveCommand: CommandType {
     }
 }
 
-struct InteractiveCommandOptions: OptionsType {
+struct InteractiveCommandOptions: OptionsProtocol {
     let db: DatabaseOptions
     let delete: DeleteOptions
 
-    static func create(db: DatabaseOptions) -> DeleteOptions -> InteractiveCommandOptions {
+    static func create(db: DatabaseOptions) -> (DeleteOptions) -> InteractiveCommandOptions {
         return { delete in
             InteractiveCommandOptions(db: db, delete: delete)
         }
     }
 
-    static func evaluate(m: CommandMode) -> Result<InteractiveCommandOptions, CommandantError<DupesError>> {
+    static func evaluate(_ m: CommandMode) -> Result<InteractiveCommandOptions, CommandantError<DupesError>> {
         return create
             <*> DatabaseOptions.evaluate(m)
             <*> DeleteOptions.evaluate(m)
     }
 }
 
-private func writeVimrc() -> NSURL {
-    let tmp = NSFileHandle.temporaryFile("dupes", suffix: ".vimrc")
-    tmp.0.writeData(dupes_vimrc.dataUsingEncoding(NSUTF8StringEncoding)!)
+private func writeVimrc() -> URL {
+    let tmp = FileHandle.temporaryFile(name: "dupes", suffix: ".vimrc")
+    tmp.0.write(dupes_vimrc.data(using: .utf8)!)
     tmp.0.closeFile()
     return tmp.1
 }
 
-private func writeInteractiveDuplicatesList(db: DupesDatabase, to fileHandle: NSFileHandle) throws {
-    fileHandle.writeData(dupes_interactive_txt.dataUsingEncoding(NSUTF8StringEncoding)!)
+private func writeInteractiveDuplicatesList(db: DupesDatabase, to fileHandle: FileHandle) throws {
+    fileHandle.write(dupes_interactive_txt.data(using: .utf8)!)
     var first = true
-    for group in try db.listDuplicates("  ") {
+    for group in try db.listDuplicates(indent: "  ") {
         if first { first = false }
-        else { fileHandle.writeData("\n\n".dataUsingEncoding(NSUTF8StringEncoding)!) }
-        fileHandle.writeData(group.dataUsingEncoding(NSUTF8StringEncoding)!)
+        else { fileHandle.write("\n\n".data(using: .utf8)!) }
+        fileHandle.write(group.data(using: .utf8)!)
     }
 }
 
-private func editInteractiveDuplicatesList(listURL: NSURL, reopenTTY: Bool) -> Bool {
+private func editInteractiveDuplicatesList(_ listURL: URL, reopenTTY: Bool) -> Bool {
     let rc = writeVimrc()
     defer {
         do {
-            try NSFileManager.defaultManager().removeItemAtURL(rc)
+            try FileManager.default.removeItem(at: rc)
         } catch {}
     }
     return (executeVim(listURL, configFile: rc, reopenTTY: reopenTTY) ?? executeMVim(listURL, configFile: rc)) != nil
 }
 
-private func executeVim(file: NSURL, configFile: NSURL?, reopenTTY: Bool) -> Int32? {
+private func executeVim(_ file: URL, configFile: URL?, reopenTTY: Bool) -> Int32? {
     var arguments = [String]()
     if let configPath = configFile?.path {
-        arguments.appendContentsOf([ "-u", configPath ])
+        arguments.append(contentsOf: [ "-u", configPath ])
     }
-    arguments.append(file.path!)
+    arguments.append(file.path)
 
-    let task = ForkExecTask.launchVimWithArguments(arguments, reopenTTY: reopenTTY)
+    let task = ForkExecTask.launchVim(withArguments: arguments, reopenTTY: reopenTTY)
 
     if let task = task {
         task.waitUntilExit()
@@ -155,19 +156,19 @@ private func executeVim(file: NSURL, configFile: NSURL?, reopenTTY: Bool) -> Int
     return nil
 }
 
-private func executeMVim(file: NSURL, configFile: NSURL?) -> Int32? {
+private func executeMVim(_ file: URL, configFile: URL?) -> Int32? {
     var arguments = [String]()
     if let configPath = configFile?.path {
-        arguments.appendContentsOf([ "-u", configPath ])
+        arguments.append(contentsOf: [ "-u", configPath ])
     }
-    arguments.append(file.path!)
+    arguments.append(file.path)
 
     return executeCommandIfExists("mvim", arguments: [ "-f" ] + arguments)
 }
 
-func executeCommandIfExists(commandName: String, arguments: [String]) -> Int32? {
-    func launchTask(path: String, arguments: [String]) -> Int32 {
-        let task = NSTask()
+func executeCommandIfExists(_ commandName: String, arguments: [String]) -> Int32? {
+    func launchTask(_ path: String, arguments: [String]) -> Int32 {
+        let task = Process()
         task.launchPath = path
         task.arguments = arguments
 
@@ -194,16 +195,14 @@ enum Marked<T> {
         }
     }
 
-    @warn_unused_result
-    func map<U>(@noescape transform: T throws -> U) rethrows -> Marked<U> {
+    func map<U>(transform: (T) throws -> U) rethrows -> Marked<U> {
         switch self {
         case .ForDeletion(let t):
             return .ForDeletion(try transform(t))
         }
     }
 
-    @warn_unused_result
-    func flatMap<U>(@noescape transform: T throws -> U?) rethrows -> Marked<U>? {
+    func flatMap<U>(transform: (T) throws -> U?) rethrows -> Marked<U>? {
         switch self {
         case .ForDeletion(let t):
             return try transform(t).map { .ForDeletion($0) }
@@ -211,13 +210,12 @@ enum Marked<T> {
     }
 }
 
-private func parseMarkedList(url: NSURL) -> AnySequence<Marked<String>> {
-    return AnySequence {
-        readLines(url.path!)
+private func parseMarkedList(_ url: URL) -> AnySequence<Marked<String>> {
+    return AnySequence(
+        readLines(url.path)
             .lazy
             .filter({ $0.hasPrefix("x /") })
-            .map({ ($0 as NSString).substringFromIndex(2) })
+            .map({ String($0.dropFirst(2)) })
             .map({ .ForDeletion($0) })
-            .generate()
-    }
+    )
 }

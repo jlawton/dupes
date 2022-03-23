@@ -7,17 +7,19 @@
 //
 
 import Foundation
+import Commandant
+import PathKit
 
-struct AddCommand: CommandType {
+struct AddCommand: CommandProtocol {
     let verb = "add"
     let function = "Index files passed in on standard input"
 
-    func run(options: AddCommandOptions) -> Result<(), DupesError> {
+    func run(_ options: AddCommandOptions) -> Result<(), DupesError> {
         return DupesDatabase.open(options.db.path)
-            .tryPassthrough({ try AddCommand.run($0, filePaths: options.files.filesPaths) })
+            .tryPassthrough({ try AddCommand.run(db: $0, filePaths: options.files.filesPaths) })
             .tryMap { db in
                 if options.hash {
-                    try HashCommand.run(db)
+                    try HashCommand.run(db: db)
                 }
             }
     }
@@ -25,23 +27,23 @@ struct AddCommand: CommandType {
     static func run(db: DupesDatabase, filePaths: AnySequence<String>) throws {
         for rawPath in filePaths {
             let path = Path(rawPath).absolute()
-            try addFile(path, db: db)
+            try addFile(path: path, db: db)
         }
     }
 }
 
-struct AddCommandOptions: OptionsType {
+struct AddCommandOptions: OptionsProtocol {
     let db: DatabaseOptions
     let hash: Bool
     let files: FileArguments
 
-    static func create(dbOptions: DatabaseOptions) -> Bool -> FileArguments -> AddCommandOptions {
+    static func create(dbOptions: DatabaseOptions) -> (Bool) -> (FileArguments) -> AddCommandOptions {
         return { hash in { files in
             return AddCommandOptions(db: dbOptions, hash: hash, files: files)
         } }
     }
 
-    static func evaluate(m: CommandMode) -> Result<AddCommandOptions, CommandantError<DupesError>> {
+    static func evaluate(_ m: CommandMode) -> Result<AddCommandOptions, CommandantError<DupesError>> {
         return create
             <*> DatabaseOptions.evaluate(m)
             <*> m <| Option(key: "hash", defaultValue: false, usage: "Hash the potential duplicates in the database after adding the files")
@@ -55,7 +57,7 @@ func addFile(path: Path, db: DupesDatabase) throws {
         return
     }
 
-    if let fileRecord = FileRecord.fromFileAtPath("\(path)") {
+    if let fileRecord = FileRecord.fromFile(atPath: "\(path)") {
         printErr("Adding: \(path)")
         try db.addFileRecord(fileRecord)
     } else {

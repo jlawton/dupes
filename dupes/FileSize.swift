@@ -8,7 +8,7 @@
 
 import Foundation
 
-func human(fileSize: Int) -> String {
+func human(_ fileSize: Int) -> String {
     let sizeClasses = [
         (1024 * 1024 * 1024 * 1024 * 1024, "PB"),
         (1024 * 1024 * 1024 * 1024, "TB"),

@@ -7,12 +7,13 @@
 //
 
 import Foundation
+import Commandant
 
-struct HashCommand: CommandType {
+struct HashCommand: CommandProtocol {
     let verb = "hash"
     let function = "Hash all indexed files that might be duplicates"
 
-    func run(options: DatabaseOptions) -> Result<(), DupesError> {
+    func run(_ options: DatabaseOptions) -> Result<(), DupesError> {
         return DupesDatabase.open(options.path).tryMap(HashCommand.run)
     }
 

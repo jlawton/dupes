@@ -8,23 +8,23 @@
 
 import Foundation
 
-extension SequenceType {
-    func groupBy<T: Equatable>(group: Generator.Element -> T) -> AnySequence<[Generator.Element]> {
+extension Sequence {
+    func groupBy<T: Equatable>(_ group: @escaping (Element) -> T) -> AnySequence<[Element]> {
         return AnySequence {
-            return GroupedGenerator(inner: self.generate(), group: group)
+            return GroupedIterator(inner: self.makeIterator(), group: group)
         }
     }
 }
 
-private struct GroupedGenerator<G: GeneratorType, T: Equatable>: GeneratorType {
+private struct GroupedIterator<G: IteratorProtocol, T: Equatable>: IteratorProtocol {
     var inner: G
-    let group: G.Element -> T
+    let group: (G.Element) -> T
 
     private var started: Bool = false
     private var nextValue: G.Element? = nil
     private var groupID: T! = nil
 
-    init(inner: G, group: G.Element -> T) {
+    init(inner: G, group: @escaping (G.Element) -> T) {
         self.inner = inner
         self.group = group
     }

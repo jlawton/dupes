@@ -7,8 +7,9 @@
 //
 
 import Foundation
+import Commandant
 
-func printErr(string: String) {
+func printErr(_ string: String) {
     fputs("\(string)\n", __stderrp)
 }
 

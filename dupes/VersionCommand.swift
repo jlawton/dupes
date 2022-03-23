@@ -7,14 +7,15 @@
 //
 
 import Foundation
+import Commandant
 
 let dupesVersion = "0.1.0"
 
-struct VersionCommand: CommandType {
+struct VersionCommand: CommandProtocol {
     let verb = "version"
     let function = "Display the current version of dupes"
 
-    func run(options: NoOptions<DupesError>) -> Result<(), DupesError> {
+    func run(_ options: NoOptions<DupesError>) -> Result<(), DupesError> {
         print(dupesVersion)
         return Result(value: ())
     }

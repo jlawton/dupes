@@ -25,19 +25,19 @@ extension FileRecord {
     private mutating func addHash() {
         if hash == nil {
             if let h = md5File(self.path) {
-                hash = h.hexString
+                hash = h.hexEncodedString()
             }
         }
     }
 }
 
 extension FileRecord {
-    static func fromFileAtPath(path: String) -> FileRecord? {
+    static func fromFile(atPath path: String) -> FileRecord? {
         do {
-            let attr = try NSFileManager.defaultManager().attributesOfItemAtPath(path)
-            guard let fileSize = attr[NSFileSize] else { return nil }
+            let attr = try FileManager.default.attributesOfItem(atPath: path)
+            guard let fileSize = attr[.size] as? NSNumber else { return nil }
 
-            let size: Int = (fileSize as! NSNumber).integerValue
+            let size: Int = fileSize.intValue
             return FileRecord(path: path, size: size, hash: nil)
         } catch {
             return nil
@@ -45,33 +45,32 @@ extension FileRecord {
     }
 }
 
-func md5File(path: String) -> NSData? {
-    guard let file = NSFileHandle(forReadingAtPath: path) else { return nil }
+func md5File(_ path: String) -> Data? {
+    guard let file = FileHandle(forReadingAtPath: path) else { return nil }
+    defer { file.closeFile() }
 
-    guard let ctxData = NSMutableData(length: sizeof(CC_MD5_CTX)) else {
-        file.closeFile()
-        return nil
-    }
-    let ctx = UnsafeMutablePointer<CC_MD5_CTX>(ctxData.mutableBytes)
+    let ctx = UnsafeMutablePointer<CC_MD5_CTX>.allocate(capacity: 1)
+    defer { ctx.deallocate() }
 
     CC_MD5_Init(ctx)
 
     var done = false
     while !done {
         autoreleasepool {
-            let data = file.readDataOfLength(8 * 1024)
-            if data.length == 0 {
+            let data = file.readData(ofLength: 8 * 1024)
+            if data.isEmpty {
                 done = true
             } else {
-                CC_MD5_Update(ctx, data.bytes, CC_LONG(data.length))
+                _ = data.withUnsafeBytes { (buffer: UnsafeRawBufferPointer) in
+                    CC_MD5_Update(ctx, buffer.baseAddress, CC_LONG(buffer.count))
+                }
             }
         }
     }
 
-    file.closeFile()
-
-    guard let outData = NSMutableData(length: Int(CC_MD5_DIGEST_LENGTH)) else { return nil }
-    CC_MD5_Final(UnsafeMutablePointer<UInt8>(outData.mutableBytes), ctx)
-
+    var outData = Data(repeating: 0, count: Int(CC_MD5_DIGEST_LENGTH))
+    _ = outData.withUnsafeMutableBytes { (buffer: UnsafeMutableRawBufferPointer) in
+        CC_MD5_Final(buffer.bindMemory(to: UInt8.self).baseAddress, ctx)
+    }
     return outData
 }

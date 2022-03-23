@@ -10,7 +10,7 @@ import Foundation
 
 /// Display a prompt at the terminal and wait for a response
 /// Returns nil if there was a problem. Returns the default choice on ENTER
-func prompt(message: String, defaultChoice: Character? = nil) -> Character? {
+func prompt(_ message: String, defaultChoice: Character? = nil) -> Character? {
     guard isatty(fileno(stdin)) == 1 else {
         return nil
     }
@@ -81,7 +81,7 @@ func GetKeyPress() -> KeyPress? {
     return nil
 }
 
-private func ttySetCbreak(fd: Int32) -> termios? {
+private func ttySetCbreak(_ fd: Int32) -> termios? {
     var oldT = termios()
     if tcgetattr(fd, &oldT) == -1 {
         perror("tcgetattr")

@@ -7,14 +7,15 @@
 //
 
 import Foundation
+import Result
 
-enum DupesError {
+enum DupesError: Error {
     case Database(String, db: String)
     case Unknown(String)
 }
 
-extension DupesError: ErrorTypeConvertible {
-    static func errorFromErrorType(error: ErrorType) -> DupesError {
+extension DupesError: ErrorConvertible {
+    static func error(from error: Error) -> DupesError {
         return .Unknown("\(error)")
     }
 }
@@ -24,7 +25,7 @@ extension DupesError: CustomStringConvertible {
         switch self {
         case .Database(let msg, db: let path):
             return "Database error: \(msg) (\(path))"
-        case Unknown(let msg):
+        case .Unknown(let msg):
             return "Error: \(msg)"
         }
     }

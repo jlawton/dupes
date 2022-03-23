@@ -7,11 +7,12 @@
 //
 
 import Foundation
+import Result
 
-public extension ResultType where Error: ErrorTypeConvertible {
+public extension Result {
 
-    /// Returns the result of applying `transform` to `Success`es’ values, or wrapping thrown errors.
-    public func tryPassthrough(@noescape sideEffect: Value throws -> Void) -> Result<Value, Error> {
+    /// Performs a side effect on value, keeping the value or propogating an error from the side effect.
+    func tryPassthrough(_ sideEffect: (Value) throws -> Void) -> Result<Value, Error> where Failure: ErrorConvertible {
         return tryMap { value in
             try sideEffect(value)
             return value

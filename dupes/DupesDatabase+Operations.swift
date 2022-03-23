@@ -39,17 +39,17 @@ extension DupesDatabase {
         printErr("Total Wasted Space: \(human(totalWastedSpace))")
     }
 
-    func reIndex(duplicatesOnly duplicatesOnly: Bool = false) throws {
+    func reIndex(duplicatesOnly: Bool = false) throws {
         let sequence = try (duplicatesOnly ? duplicates() : allFiles())
         for indexedFile in sequence {
-            if let file = FileRecord.fromFileAtPath(indexedFile.path) {
+            if let file = FileRecord.fromFile(atPath: indexedFile.path) {
                 if file.size != indexedFile.size {
                     printErr("File size changed: \(file.path)")
                     try addFileRecord(file, force: true)
                 }
             } else {
                 printErr("File not found: \(indexedFile.path)")
-                try removeFileRecord(indexedFile)
+                _ = try removeFileRecord(indexedFile)
             }
         }
     }

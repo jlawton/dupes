@@ -7,18 +7,20 @@
 //
 
 import Foundation
+import Commandant
+import PathKit
 
 let defaultDatabasePath = "~/.dupes.db"
 
-struct DatabaseOptions: OptionsType {
+struct DatabaseOptions: OptionsProtocol {
     let path: String
 
     static func create(path: String) -> DatabaseOptions {
         return DatabaseOptions(path: path)
     }
 
-    static func evaluate(m: CommandMode) -> Result<DatabaseOptions, CommandantError<DupesError>> {
-        let databasePathFromEnvironment = NSProcessInfo.processInfo().environment["DUPES_DB_PATH"]
+    static func evaluate(_ m: CommandMode) -> Result<DatabaseOptions, CommandantError<DupesError>> {
+        let databasePathFromEnvironment = ProcessInfo.processInfo.environment["DUPES_DB_PATH"]
         let databasePath = databasePathFromEnvironment ?? defaultDatabasePath
         let defaultPathUsage = databasePathFromEnvironment == nil
             ? "default: \(databasePath)"
@@ -28,7 +30,7 @@ struct DatabaseOptions: OptionsType {
     }
 }
 
-struct ListOptions: OptionsType {
+struct ListOptions: OptionsProtocol {
     let bare: Bool
     let fileSeparator: String
 
@@ -36,7 +38,7 @@ struct ListOptions: OptionsType {
         return "\(fileSeparator)\(fileSeparator)"
     }
 
-    static func create(bare: Bool) -> Bool -> ListOptions {
+    static func create(bare: Bool) -> (Bool) -> ListOptions {
         return { nulSeparator in
             let fileSeparator = nulSeparator ? "\0" : "\n"
             return ListOptions(
@@ -45,22 +47,22 @@ struct ListOptions: OptionsType {
         }
     }
 
-    static func evaluate(m: CommandMode) -> Result<ListOptions, CommandantError<DupesError>> {
+    static func evaluate(_ m: CommandMode) -> Result<ListOptions, CommandantError<DupesError>> {
         return create
             <*> m <| Switch(flag: nil, key: "bare", usage: "Display grouped file paths without summary data")
             <*> m <| Switch(flag: nil, key: "print0", usage: "Separate files with NUL characters, rather than by line. Implies --bare")
     }
 }
 
-struct DeleteOptions: OptionsType {
+struct DeleteOptions: OptionsProtocol {
     let trash: Bool
 
-    func deleteFile(path: String) throws {
-        let url = NSURL(fileURLWithPath: path)
+    func deleteFile(_ path: String) throws {
+        let url = URL(fileURLWithPath: path)
         if trash {
-            try NSFileManager.defaultManager().trashItemAtURL(url, resultingItemURL: nil)
+            try FileManager.default.trashItem(at: url, resultingItemURL: nil)
         } else {
-            try NSFileManager.defaultManager().removeItemAtURL(url)
+            try FileManager.default.removeItem(at: url)
         }
     }
 
@@ -68,36 +70,36 @@ struct DeleteOptions: OptionsType {
         return DeleteOptions(trash: trash)
     }
 
-    static func evaluate(m: CommandMode) -> Result<DeleteOptions, CommandantError<DupesError>> {
+    static func evaluate(_ m: CommandMode) -> Result<DeleteOptions, CommandantError<DupesError>> {
         return create
             <*> m <| Switch(flag: nil, key: "trash", usage: "Trash files rather than deleting them")
     }
 }
 
-struct FileArguments: OptionsType {
+struct FileArguments: OptionsProtocol {
     private let recursive: Bool
     private let givenFilePaths: [String]?
 
     var filesPaths: AnySequence<String> {
         let files = (givenFilePaths != nil)
-            ? AnySequence { self.givenFilePaths!.generate() }
+            ? AnySequence(self.givenFilePaths!)
             : readLines()
 
         if recursive {
             let sequence = files.lazy.flatMap(recursiveFileEnumerator)
-            return AnySequence { sequence.generate() }
+            return AnySequence(sequence)
         }
         return files
     }
 
-    static func create(recursive: Bool) -> [String] -> FileArguments {
+    static func create(recursive: Bool) -> ([String]) -> FileArguments {
         return { paths in
-            let filePaths: [String]? = (paths.count > 0) ? paths : nil
+            let filePaths: [String]? = (!paths.isEmpty) ? paths : nil
             return FileArguments(recursive: recursive, givenFilePaths: filePaths)
         }
     }
 
-    static func evaluate(m: CommandMode) -> Result<FileArguments, CommandantError<DupesError>> {
+    static func evaluate(_ m: CommandMode) -> Result<FileArguments, CommandantError<DupesError>> {
         return create
             <*> m <| Switch(flag: "r", key: "recursive", usage: "Recurse files in given directories")
             <*> m <| Argument(defaultValue: [], usage: "Files to index, rather than reading from standard input")
@@ -105,35 +107,35 @@ struct FileArguments: OptionsType {
 }
 
 private func recursiveFileEnumerator(path: String) -> AnySequence<String> {
-    let fileManager = NSFileManager.defaultManager()
+    let fileManager = FileManager.default
 
     let expandedPath = "\(Path(path).normalize())"
 
     var isDirectory: ObjCBool = false
-    guard fileManager.fileExistsAtPath(expandedPath, isDirectory: &isDirectory) else {
-        return AnySequence { AnyGenerator { nil } }
+    guard fileManager.fileExists(atPath: expandedPath, isDirectory: &isDirectory) else {
+        return AnySequence { AnyIterator { nil } }
     }
 
-    if isDirectory {
-        let url = NSURL.fileURLWithPath(expandedPath, isDirectory: true)
-        return AnySequence { fileManager.fileGeneratorAtURL(url) }
+    if isDirectory.boolValue {
+        let url = URL(fileURLWithPath: expandedPath, isDirectory: true)
+        return AnySequence { fileManager.fileIterator(at: url) }
     } else {
-        return AnySequence { [ path ].generate() }
+        return AnySequence([path])
     }
 }
 
-extension NSFileManager {
-    func fileGeneratorAtURL(url: NSURL) -> AnyGenerator<String> {
-        let enumerator = enumeratorAtURL(url,
-            includingPropertiesForKeys: [NSURLIsDirectoryKey],
-            options: [.SkipsHiddenFiles, .SkipsPackageDescendants],
+extension FileManager {
+    func fileIterator(at url: URL) -> AnyIterator<String> {
+        let enumerator = enumerator(at: url,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles, .skipsPackageDescendants],
             errorHandler: nil)
 
-        return AnyGenerator {
+        return AnyIterator {
             while let fileURL = enumerator.flatMap({$0.nextObject()}) as? NSURL {
 
-                guard let resourceValues = try? fileURL.resourceValuesForKeys([ NSURLIsDirectoryKey ]),
-                    let isDirectory = resourceValues[NSURLIsDirectoryKey] as? Bool else {
+                guard let resourceValues = try? fileURL.resourceValues(forKeys: [.isDirectoryKey]),
+                      let isDirectory = resourceValues[.isDirectoryKey] as? Bool else {
                         continue
                 }
 

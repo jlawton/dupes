@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import SQLite
+import PathKit
 
 private let file = Table("file", database: "main")
 private let sharedSize = View("candidate", database: "main")
@@ -37,7 +39,7 @@ final class DupesDatabase {
         }
     }
 
-    func addFileRecord(fileRecord: FileRecord, force: Bool = false) throws {
+    func addFileRecord(_ fileRecord: FileRecord, force: Bool = false) throws {
         var fileRecordToInsert = fileRecord
 
         // Don't update if we'd just be deleting a hash
@@ -50,15 +52,15 @@ final class DupesDatabase {
             }
         }
 
-        try connection.run(file.insert(or: .Replace, [
+        try connection.run(file.insert(or: .replace, [
             path <- fileRecordToInsert.path,
             size <- fileRecordToInsert.size,
             hash <- fileRecordToInsert.hash
         ]))
     }
 
-    func removeFileRecord(fileRecord: FileRecord) throws -> Bool {
-        return try removeFileRecord(fileRecord.path)
+    func removeFileRecord(_ fileRecord: FileRecord) throws -> Bool {
+        return try removeFileRecord(filePath: fileRecord.path)
     }
 
     func removeFileRecord(filePath: String) throws -> Bool {
@@ -76,7 +78,7 @@ final class DupesDatabase {
         return fileRecords(query)
     }
 
-    func duplicates(addedOnly addedOnly: Bool = false) throws -> AnySequence<FileRecord> {
+    func duplicates(addedOnly: Bool = false) throws -> AnySequence<FileRecord> {
         if addedOnly {
             assert(self.trackAdditions)
         }
@@ -88,7 +90,7 @@ final class DupesDatabase {
         return fileRecords(query)
     }
 
-    func groupedDuplicates(addedOnly addedOnly: Bool = false) throws -> AnySequence<[FileRecord]> {
+    func groupedDuplicates(addedOnly: Bool = false) throws -> AnySequence<[FileRecord]> {
         return try duplicates(addedOnly: addedOnly).groupBy({ "\($0.size):\($0.hash!)" })
     }
 
@@ -107,7 +109,7 @@ final class DupesDatabase {
         return []
     }
 
-    func filesToHash(addedOnly addedOnly: Bool = false) throws -> AnySequence<FileRecord> {
+    func filesToHash(addedOnly: Bool = false) throws -> AnySequence<FileRecord> {
         if addedOnly {
             assert(self.trackAdditions)
         }
@@ -119,28 +121,26 @@ final class DupesDatabase {
         ).lazy.map({ row in
             FileRecord(path: row[path], size: row[size], hash: nil)
         })
-        return AnySequence { query.generate() }
+        return AnySequence(query)
     }
 
-    func remount(from: String, to: String) throws -> Int {
+    func remount(_ from: String, to: String) throws -> Int {
         let sep = Path.separator
         let fromSlash = from.hasSuffix(sep) ? from : (from + sep)
         let toSlash = to.hasSuffix(sep) ? to : (to + sep)
         let escapeChar = "\\"
         let pattern: String = escapeForLike(fromSlash) + "%"
-        let fromLength = fromSlash.characters.count
-        return try connection.sync {
-            try self.connection.run(
-                "UPDATE file" +
-                " SET path = :to || substr(path, :startindex)" +
-                " WHERE path LIKE :pattern ESCAPE :esc",
-                [ ":pattern": pattern, ":startindex": fromLength + 1, ":to": toSlash, ":esc": escapeChar ])
-            return self.connection.changes
-        }
+        let fromLength = fromSlash.count
+        try self.connection.run(
+            "UPDATE file" +
+            " SET path = :to || substr(path, :startindex)" +
+            " WHERE path LIKE :pattern ESCAPE :esc",
+            [ ":pattern": pattern, ":startindex": fromLength + 1, ":to": toSlash, ":esc": escapeChar ])
+        return self.connection.changes
     }
 
-    private func selectFile(filePath: String) -> FileRecord? {
-        let row = connection.pluck(file
+    private func selectFile(_ filePath: String) -> FileRecord? {
+        let row = try! connection.pluck(file
             .select([path, size, hash])
             .filter(path == filePath))
         if let row = row {
@@ -163,7 +163,7 @@ final class DupesDatabase {
 
         // CREATE INDEX IF NOT EXISTS index_file_on_size_hash
         // ON added (size, hash)
-        try connection.run(file.createIndex([size, hash], unique: false, ifNotExists: true))
+        try connection.run(file.createIndex(size, hash, unique: false, ifNotExists: true))
 
         try connection.run(
             "CREATE VIEW IF NOT EXISTS candidate" +
@@ -189,12 +189,12 @@ final class DupesDatabase {
             t.column(file_id, primaryKey: true)
             t.column(size)
             t.column(hash)
-            t.foreignKey(file_id, references: file, rowid, update: nil, delete: .Cascade)
+            t.foreignKey(file_id, references: file, rowid, update: nil, delete: .cascade)
         })
 
         // CREATE INDEX IF NOT EXISTS temp.index_added_on_size_hash
         // ON added (size, hash)
-        try connection.run(added.createIndex([size, hash], unique: false, ifNotExists: true))
+        try connection.run(added.createIndex(size, hash, unique: false, ifNotExists: true))
 
         try connection.run(
             "CREATE TEMP TRIGGER IF NOT EXISTS record_file_added AFTER INSERT ON main.file" +
@@ -229,30 +229,30 @@ final class DupesDatabase {
 
 }
 
-func fileRecords<S: SequenceType where S.Generator.Element == Row>(query: S) -> AnySequence<FileRecord> {
-    return AnySequence {
-        return query.lazy.map({ row in
+func fileRecords<S: Sequence>(_ query: S) -> AnySequence<FileRecord> where S.Element == Row {
+    return AnySequence(
+        query.lazy.map({ row in
             FileRecord(path: row[path], size: row[size], hash: row[hash])
-        }).generate()
-    }
+        })
+    )
 }
 
 extension DupesDatabase {
-    static func open(path: String, trackAdditions: Bool = false) -> Result<DupesDatabase, DupesError> {
+    static func open(_ path: String, trackAdditions: Bool = false) -> Swift.Result<DupesDatabase, DupesError> {
         var _db: DupesDatabase?
         let dbPath = "\(Path(path).absolute())"
         do {
-            _db = try DupesDatabase(location: .URI(dbPath), trackAdditions: trackAdditions)
+            _db = try DupesDatabase(location: .uri(dbPath), trackAdditions: trackAdditions)
         } catch let e {
-            return Result(error: .Database("\(e)", db: dbPath))
+            return .failure(.Database("\(e)", db: dbPath))
         }
-        guard let db = _db else { return Result(error: .Database("Failed to open database", db: dbPath)) }
+        guard let db = _db else { return .failure(.Database("Failed to open database", db: dbPath)) }
 
-        return Result(value: db)
+        return .success(db)
     }
 }
 
-func escapeForLike(path: String, escapeChar esc: Character = "\\") -> String {
+func escapeForLike(_ path: String, escapeChar esc: Character = "\\") -> String {
     // Always escape the escapes first!
     let escapes = [
         ("\(esc)", "\(esc)\(esc)"),
@@ -261,7 +261,7 @@ func escapeForLike(path: String, escapeChar esc: Character = "\\") -> String {
     ]
     var escaped = path
     for pair in escapes {
-        escaped = escaped.stringByReplacingOccurrencesOfString(pair.0, withString: pair.1)
+        escaped = escaped.replacingOccurrences(of: pair.0, with: pair.1)
     }
     return escaped
 }
@@ -270,7 +270,7 @@ func escapeForLike(path: String, escapeChar esc: Character = "\\") -> String {
 private let vacuumThreshold = 0.5
 
 extension DupesDatabase {
-    func vacuum(force force: Bool = false) throws {
+    func vacuum(force: Bool = false) throws {
         if !force {
             let stats = databasePageStats()
             let freeRatio = Double(stats.freelistCount) / Double(stats.pageCount)
@@ -281,8 +281,8 @@ extension DupesDatabase {
         try connection.run("VACUUM")
     }
 
-    private func scalarInt(SQL: String) -> Int? {
-        guard let value = connection.scalar(SQL) as? Int.Datatype else {
+    private func scalarInt(_ SQL: String) -> Int? {
+        guard let value = try! connection.scalar(SQL) as? Int.Datatype else {
             return nil
         }
         return Int.fromDatatypeValue(value)
