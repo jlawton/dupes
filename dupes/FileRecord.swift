@@ -24,7 +24,7 @@ extension FileRecord {
 
     private mutating func addHash() {
         if hash == nil {
-            if let h = md5File(self.path) {
+            if let h = sha1File(self.path) {
                 hash = h.hexEncodedString()
             }
         }
@@ -45,14 +45,14 @@ extension FileRecord {
     }
 }
 
-func md5File(_ path: String) -> Data? {
+func sha1File(_ path: String) -> Data? {
     guard let file = FileHandle(forReadingAtPath: path) else { return nil }
     defer { file.closeFile() }
 
-    let ctx = UnsafeMutablePointer<CC_MD5_CTX>.allocate(capacity: 1)
+    let ctx = UnsafeMutablePointer<CC_SHA1_CTX>.allocate(capacity: 1)
     defer { ctx.deallocate() }
 
-    CC_MD5_Init(ctx)
+    CC_SHA1_Init(ctx)
 
     var done = false
     while !done {
@@ -62,15 +62,15 @@ func md5File(_ path: String) -> Data? {
                 done = true
             } else {
                 _ = data.withUnsafeBytes { (buffer: UnsafeRawBufferPointer) in
-                    CC_MD5_Update(ctx, buffer.baseAddress, CC_LONG(buffer.count))
+                    CC_SHA1_Update(ctx, buffer.baseAddress, CC_LONG(buffer.count))
                 }
             }
         }
     }
 
-    var outData = Data(repeating: 0, count: Int(CC_MD5_DIGEST_LENGTH))
+    var outData = Data(repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
     _ = outData.withUnsafeMutableBytes { (buffer: UnsafeMutableRawBufferPointer) in
-        CC_MD5_Final(buffer.bindMemory(to: UInt8.self).baseAddress, ctx)
+        CC_SHA1_Final(buffer.bindMemory(to: UInt8.self).baseAddress, ctx)
     }
     return outData
 }
