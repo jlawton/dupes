@@ -20,7 +20,7 @@ struct ReindexCommand: CommandProtocol {
             }
             .tryPassthrough { db in
                 if options.hash {
-                    try HashCommand.run(db: db)
+                    try HashCommand.run(db: db, options: options.hashOptions)
                 }
             }
             .tryMap { db in
@@ -33,18 +33,20 @@ struct ReindexCommand: CommandProtocol {
 struct ReindexCommandOptions: OptionsProtocol {
     let db: DatabaseOptions
     let hash: Bool
+    let hashOptions: HashOptions
     let allFiles: Bool
 
-    static func create(db: DatabaseOptions) -> (Bool) -> (Bool) -> ReindexCommandOptions {
-        return { hash in { allFiles in
-            ReindexCommandOptions(db: db, hash: hash, allFiles: allFiles)
-        } }
+    static func create(db: DatabaseOptions) -> (Bool) -> (HashOptions) -> (Bool) -> ReindexCommandOptions {
+        return { hash in { hashOptions in { allFiles in
+            ReindexCommandOptions(db: db, hash: hash, hashOptions: hashOptions, allFiles: allFiles)
+        } } }
     }
 
     static func evaluate(_ m: CommandMode) -> Result<ReindexCommandOptions, CommandantError<DupesError>> {
         return create
             <*> DatabaseOptions.evaluate(m)
             <*> m <| Option(key: "hash", defaultValue: false, usage: "Hash the potential duplicates after reindexing")
+            <*> HashOptions.evaluate(m)
             <*> m <| Switch(flag: "a", key: "all", usage: "Scan all indexed files, not just duplicates")
     }
 }

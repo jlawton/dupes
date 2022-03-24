@@ -76,6 +76,26 @@ struct DeleteOptions: OptionsProtocol {
     }
 }
 
+struct HashOptions: OptionsProtocol {
+    enum HashFiles: String, ArgumentProtocol {
+        case candidates
+        case all
+
+        // ArgumentProtocol
+        static let name = "candidates|all"
+    }
+    let hashFiles: HashFiles
+
+    static func create(hashFiles: HashFiles) -> HashOptions {
+        return HashOptions(hashFiles: hashFiles)
+    }
+
+    static func evaluate(_ m: CommandMode) -> Result<HashOptions, CommandantError<DupesError>> {
+        return create
+        <*> m <| Option(key: "hash-files", defaultValue: HashFiles.candidates, usage: "Determine which files to hash (default: candidates)")
+    }
+}
+
 struct FileArguments: OptionsProtocol {
     private let recursive: Bool
     private let givenFilePaths: [String]?

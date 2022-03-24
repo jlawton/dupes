@@ -19,7 +19,7 @@ struct AddCommand: CommandProtocol {
             .tryPassthrough({ try AddCommand.run(db: $0, filePaths: options.files.filesPaths) })
             .tryMap { db in
                 if options.hash {
-                    try HashCommand.run(db: db)
+                    try HashCommand.run(db: db, options: options.hashOptions)
                 }
             }
     }
@@ -35,18 +35,20 @@ struct AddCommand: CommandProtocol {
 struct AddCommandOptions: OptionsProtocol {
     let db: DatabaseOptions
     let hash: Bool
+    let hashOptions: HashOptions
     let files: FileArguments
 
-    static func create(dbOptions: DatabaseOptions) -> (Bool) -> (FileArguments) -> AddCommandOptions {
-        return { hash in { files in
-            return AddCommandOptions(db: dbOptions, hash: hash, files: files)
-        } }
+    static func create(dbOptions: DatabaseOptions) -> (Bool) -> (HashOptions) -> (FileArguments) -> AddCommandOptions {
+        return { hash in { hashOptions in { files in
+            return AddCommandOptions(db: dbOptions, hash: hash, hashOptions: hashOptions, files: files)
+        } } }
     }
 
     static func evaluate(_ m: CommandMode) -> Result<AddCommandOptions, CommandantError<DupesError>> {
         return create
             <*> DatabaseOptions.evaluate(m)
             <*> m <| Option(key: "hash", defaultValue: false, usage: "Hash the potential duplicates in the database after adding the files")
+            <*> HashOptions.evaluate(m)
             <*> FileArguments.evaluate(m)
     }
 }

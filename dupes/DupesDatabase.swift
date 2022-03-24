@@ -78,6 +78,17 @@ final class DupesDatabase {
         return fileRecords(query)
     }
 
+    func unhashed() throws -> AnySequence<FileRecord> {
+        let query = try connection.prepare(file
+            .select(distinct: [path, size])
+            .where(hash == nil))
+        return AnySequence(
+            query.lazy.map({ row in
+                FileRecord(path: row[path], size: row[size], hash: nil)
+            })
+        )
+    }
+
     func duplicates(addedOnly: Bool = false) throws -> AnySequence<FileRecord> {
         if addedOnly {
             assert(self.trackAdditions)

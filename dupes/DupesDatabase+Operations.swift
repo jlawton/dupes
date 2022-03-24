@@ -11,7 +11,15 @@ import Foundation
 extension DupesDatabase {
 
     func hashAllCandidates() throws {
-        for file in try filesToHash() {
+        return try hashFiles(filesToHash())
+    }
+
+    func hashAllIndexed() throws {
+        return try hashFiles(unhashed())
+    }
+
+    func hashFiles(_ list: AnySequence<FileRecord>) throws {
+        for file in list {
             printErr("Hashing \(file.path)")
             if let hashed = file.withHash() {
                 try addFileRecord(hashed)

@@ -16,7 +16,7 @@ struct RunCommand: CommandProtocol {
     func run(_ options: RunCommandOptions) -> Result<(), DupesError> {
         return DupesDatabase.open(options.db.path)
             .tryPassthrough({ try AddCommand.run(db: $0, filePaths: options.files.filesPaths) })
-            .tryPassthrough(HashCommand.run)
+            .tryPassthrough({ try HashCommand.run(db: $0, options: HashOptions(hashFiles: .candidates)) })
             .flatMap { db in
                 if options.interactive {
                     // Reopen STDIN to the TTY because we expect to have been

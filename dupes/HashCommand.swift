@@ -13,11 +13,33 @@ struct HashCommand: CommandProtocol {
     let verb = "hash"
     let function = "Hash all indexed files that might be duplicates"
 
-    func run(_ options: DatabaseOptions) -> Result<(), DupesError> {
-        return DupesDatabase.open(options.path).tryMap(HashCommand.run)
+    func run(_ options: HashCommandOptions) -> Result<(), DupesError> {
+        return DupesDatabase.open(options.db.path).tryMap({ try HashCommand.run(db: $0, options: options.hash) })
     }
 
-    static func run(db: DupesDatabase) throws {
-        return try db.hashAllCandidates()
+    static func run(db: DupesDatabase, options: HashOptions) throws {
+        switch options.hashFiles {
+        case .candidates:
+            return try db.hashAllCandidates()
+        case .all:
+            return try db.hashAllIndexed()
+        }
+    }
+}
+
+struct HashCommandOptions: OptionsProtocol {
+    let db: DatabaseOptions
+    let hash: HashOptions
+
+    static func create(db: DatabaseOptions) -> (HashOptions) -> HashCommandOptions {
+        return { hash in
+            return HashCommandOptions(db: db, hash: hash)
+        }
+    }
+
+    static func evaluate(_ m: CommandMode) -> Result<HashCommandOptions, CommandantError<DupesError>> {
+        return create
+            <*> DatabaseOptions.evaluate(m)
+            <*> HashOptions.evaluate(m)
     }
 }
