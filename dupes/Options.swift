@@ -56,23 +56,33 @@ struct ListOptions: OptionsProtocol {
 
 struct DeleteOptions: OptionsProtocol {
     let trash: Bool
+    let unindexMissing: Bool
 
     func deleteFile(_ path: String) throws {
         let url = URL(fileURLWithPath: path)
-        if trash {
-            try FileManager.default.trashItem(at: url, resultingItemURL: nil)
-        } else {
-            try FileManager.default.removeItem(at: url)
+        do {
+            if trash {
+                try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+            } else {
+                try FileManager.default.removeItem(at: url)
+            }
+        } catch let error as CocoaError where error.code == .fileNoSuchFile {
+            if !unindexMissing {
+                throw error
+            }
         }
     }
 
-    static func create(trash: Bool) -> DeleteOptions {
-        return DeleteOptions(trash: trash)
+    static func create(trash: Bool) -> (_ cleanMissing: Bool) -> DeleteOptions {
+        return { cleanMissing in
+            DeleteOptions(trash: trash, unindexMissing: cleanMissing)
+        }
     }
 
     static func evaluate(_ m: CommandMode) -> Result<DeleteOptions, CommandantError<DupesError>> {
         return create
             <*> m <| Switch(flag: nil, key: "trash", usage: "Trash files rather than deleting them")
+            <*> m <| Switch(flag: nil, key: "unindex-missing", usage: "When deleting, treat a missing file as successfully deleted")
     }
 }
 
