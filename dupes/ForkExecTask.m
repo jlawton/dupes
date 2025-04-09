@@ -85,11 +85,15 @@ static void free_argv(char **argv);
     if (_processIdentifier <= 0) return;
 
     int flags = wait ? 0 : WNOHANG;
-    pid_t pid = waitpid(_processIdentifier, &_terminationStatus, flags);
+    pid_t result = -1;
 
-    if (pid > 0) {
-        _processIdentifier = 0;
-    }
+    do {
+        result = waitpid(_processIdentifier, &_terminationStatus, flags);
+
+        if (result > 0) {
+            _processIdentifier = 0;
+        }
+    } while (wait && result == -1 && errno == EINTR);
 }
 
 - (void)waitUntilExit {
