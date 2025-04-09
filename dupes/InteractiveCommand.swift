@@ -215,7 +215,7 @@ private func parseMarkedList(_ url: URL) -> AnySequence<Marked<String>> {
         readLines(url.path)
             .lazy
             .filter({ $0.hasPrefix("x /") })
-            .map({ String($0.dropFirst(2)) })
+            .map({ String($0.dropFirst(2)).trimmingCharacters(in: .newlines) })
             .map({ .ForDeletion($0) })
     )
 }
