@@ -47,6 +47,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-extern BOOL reopenStandardInputTTY(void);
+BOOL reopenStandardInputTTY(void);
 
 NS_ASSUME_NONNULL_END

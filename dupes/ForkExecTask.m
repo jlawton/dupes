@@ -19,6 +19,8 @@
 #  define _PATH_TTY "/dev/tty"
 #endif
 
+static BOOL isDebuggerAttached(void);
+
 @interface ForkExecTask () {
     BOOL _launched;
 }
@@ -118,7 +120,7 @@ static void free_argv(char **argv);
 
 @end
 
-BOOL reopenStandardInputTTY() {
+BOOL reopenStandardInputTTY(void) {
     int fd = open(_PATH_TTY, O_RDONLY);
     if (fd == -1) {
         perror("Failed to open TTY");
@@ -161,7 +163,7 @@ static void free_argv(char **argv) {
  *
  * @return `YES` if the debugger is attached to the current process, `NO` otherwise
  */
-static BOOL isDebuggerAttached() {
+static BOOL isDebuggerAttached(void) {
     static BOOL debuggerIsAttached = NO;
 
     static dispatch_once_t debuggerPredicate;
